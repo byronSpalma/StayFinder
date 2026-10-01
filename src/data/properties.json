@@ -1,0 +1,20 @@
+[
+  {
+    "property_id": "prop-1",
+    "name": "Cozy Studio in Södermalm",
+    "city": "Stockholm",
+    "price_per_night": 850
+  },
+  {
+    "property_id": "prop-2",
+    "name": "Seaside Cabin",
+    "city": "Gothenburg",
+    "price_per_night": 1200
+  },
+  {
+    "property_id": "prop-3",
+    "name": "Modern Loft Downtown",
+    "city": "Malmö",
+    "price_per_night": 950
+  }
+]
