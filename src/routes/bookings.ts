@@ -12,6 +12,7 @@ const bookingStatusSchema = z.enum(["pending", "confirmed", "cancelled"]);
 const newBookingBodySchema = z.object({
   property_id: z.string().min(1, "property_id is required"),
   guest_name: z.string().min(1, "guest_name is required"),
+  guests: z.number().int().positive("guests must be greater than 0"),
   guest_email: z.string().email("guest_email must be a valid email"),
   check_in: z.string().min(1, "check_in is required"),
   check_out: z.string().min(1, "check_out is required"),
