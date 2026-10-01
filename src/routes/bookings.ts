@@ -32,10 +32,10 @@ bookings.post("/", zValidator("json", newBookingBodySchema), async (c) => {
   const body = c.req.valid("json");
 
   const newBooking: Booking = {
-    ...body,
-    booking_id: crypto.randomUUID(),
+  ...body,
+    booking_id: `booking_${Math.floor(1000 + Math.random() * 9000)}`,
     status: body.status ?? "pending",
-  };
+};
 
   const allBookings = await readJson<Booking[]>(BOOKINGS_FILE);
   allBookings.push(newBooking);
