@@ -1,10 +1,8 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { readJson, writeJson } from "../lib/storage.js";
+import { supabase } from "../lib/supabaseClient.js";
 import type { Booking, NewBooking } from "../types/booking.js";
-
-const BOOKINGS_FILE = "bookings.json";
 
 const bookingStatusSchema = z.enum(["pending", "confirmed", "cancelled"]);
 
@@ -24,36 +22,50 @@ const patchBookingBodySchema = newBookingBodySchema.partial();
 
 export const bookings = new Hono();
 
-bookings.get("/", async (c) => {
-  const allBookings = await readJson<Booking[]>(BOOKINGS_FILE);
-  return c.json(allBookings);
+bookings.get("/:id", async (c) => {
+  const id = c.req.param("id");
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("booking_id", id)
+    .maybeSingle();
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+  if (!data) {
+    return c.json({ error: `Booking with id ${id} not found` }, 404);
+  }
+
+  return c.json(data as Booking);
 });
 
 bookings.post("/", zValidator("json", newBookingBodySchema), async (c) => {
   const body = c.req.valid("json");
 
   const newBooking: Booking = {
-  ...body,
+    ...body,
     booking_id: `booking_${Math.floor(1000 + Math.random() * 9000)}`,
     status: body.status ?? "pending",
-};
+  };
 
-  const allBookings = await readJson<Booking[]>(BOOKINGS_FILE);
-  allBookings.push(newBooking);
-  await writeJson(BOOKINGS_FILE, allBookings);
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert(newBooking)
+    .select()
+    .single();
 
-  return c.json(newBooking, 201);
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  return c.json(data as Booking, 201);
 });
 
 bookings.put("/:id", zValidator("json", newBookingBodySchema), async (c) => {
   const id = c.req.param("id");
   const body = c.req.valid("json");
-
-  const allBookings = await readJson<Booking[]>(BOOKINGS_FILE);
-  const index = allBookings.findIndex((b) => b.booking_id === id);
-  if (index === -1) {
-    return c.json({ error: `Booking with id ${id} not found` }, 404);
-  }
 
   // The id always comes from the URL, never from the request body.
   const updatedBooking: Booking = {
@@ -62,45 +74,60 @@ bookings.put("/:id", zValidator("json", newBookingBodySchema), async (c) => {
     status: body.status ?? "pending",
   };
 
-  allBookings[index] = updatedBooking;
-  await writeJson(BOOKINGS_FILE, allBookings);
+  const { data, error } = await supabase
+    .from("bookings")
+    .update(updatedBooking)
+    .eq("booking_id", id)
+    .select()
+    .maybeSingle();
 
-  return c.json(updatedBooking);
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+  if (!data) {
+    return c.json({ error: `Booking with id ${id} not found` }, 404);
+  }
+
+  return c.json(data as Booking);
 });
 
 bookings.patch("/:id", zValidator("json", patchBookingBodySchema), async (c) => {
   const id = c.req.param("id");
   const patchData: Partial<NewBooking> = c.req.valid("json");
 
-  const allBookings = await readJson<Booking[]>(BOOKINGS_FILE);
-  const index = allBookings.findIndex((b) => b.booking_id === id);
-  if (index === -1) {
+  const { data, error } = await supabase
+    .from("bookings")
+    .update(patchData)
+    .eq("booking_id", id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+  if (!data) {
     return c.json({ error: `Booking with id ${id} not found` }, 404);
   }
 
-  const updatedBooking: Booking = {
-    ...allBookings[index],
-    ...patchData,
-    booking_id: id,
-  };
-
-  allBookings[index] = updatedBooking;
-  await writeJson(BOOKINGS_FILE, allBookings);
-
-  return c.json(updatedBooking);
+  return c.json(data as Booking);
 });
 
 bookings.delete("/:id", async (c) => {
   const id = c.req.param("id");
 
-  const allBookings = await readJson<Booking[]>(BOOKINGS_FILE);
-  const index = allBookings.findIndex((b) => b.booking_id === id);
-  if (index === -1) {
+  const { data, error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("booking_id", id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+  if (!data) {
     return c.json({ error: `Booking with id ${id} not found` }, 404);
   }
 
-  const [deletedBooking] = allBookings.splice(index, 1);
-  await writeJson(BOOKINGS_FILE, allBookings);
-
-  return c.json({ message: "Booking deleted", booking: deletedBooking });
+  return c.json({ message: "Booking deleted", booking: data as Booking });
 });

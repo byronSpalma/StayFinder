@@ -4,22 +4,24 @@ A small backend built with [Hono](https://hono.dev/) and TypeScript for a
 "StayFinder" style booking app. It is a school project for the Backend 2
 (TypeScript) course.
 
-Data is currently stored in JSON files (`src/data/properties.json` and
-`src/data/bookings.json`) acting as a stand-in database. Later in the course
-these files will be replaced by PostgreSQL via Supabase.
+Data is stored in PostgreSQL via [Supabase](https://supabase.com/). The
+original JSON files (`src/data/properties.json` and `src/data/bookings.json`)
+are kept only as a reference for the seed data in `supabase/schema.sql`; the
+app itself no longer reads or writes them.
 
 ## Tech stack
 
 - [Hono](https://hono.dev/) – web framework
 - TypeScript
 - [Zod](https://zod.dev/) + [@hono/zod-validator](https://github.com/honojs/middleware/tree/main/packages/zod-validator) – request validation
-- JSON files as a temporary database
+- [Supabase](https://supabase.com/) (PostgreSQL) via [`@supabase/supabase-js`](https://github.com/supabase/supabase-js) – database
 
 ## Getting started
 
 ### Prerequisites
 
 - Node.js 20.6+ (uses `--env-file` for environment variables)
+- A [Supabase](https://supabase.com/dashboard) project
 
 ### Install
 
@@ -27,17 +29,27 @@ these files will be replaced by PostgreSQL via Supabase.
 npm install
 ```
 
+### Set up the database
+
+In the Supabase dashboard, open **SQL Editor** and run the contents of
+[`supabase/schema.sql`](./supabase/schema.sql). This creates the `properties`
+and `bookings` tables and seeds them with the same sample data that used to
+live in the JSON files.
+
 ### Configure environment variables
 
-Copy the example file and adjust if needed:
+Copy the example file and fill in your Supabase project's URL and
+`service_role` key (found under **Project Settings → API** in the dashboard):
 
 ```bash
 cp .env.example .env
 ```
 
-| Variable    | Description                  | Default |
-| ----------- | ----------------------------- | ------- |
-| `HONO_PORT` | Port the server listens on    | `3000`  |
+| Variable                    | Description                                          | Default |
+| ---------------------------- | ----------------------------------------------------- | ------- |
+| `HONO_PORT`                  | Port the server listens on                             | `3000`  |
+| `SUPABASE_URL`                | Your Supabase project URL                               | —       |
+| `SUPABASE_SERVICE_ROLE_KEY`   | Supabase `service_role` secret key (server-side only)   | —       |
 
 ### Run in development
 
@@ -92,16 +104,19 @@ curl -X POST http://localhost:3000/bookings \
 ## Project structure
 
 ```
+supabase/
+  schema.sql          # table definitions + seed data for Supabase (run once in the SQL Editor)
 src/
   data/
-    properties.json
-    bookings.json
+    properties.json    # reference-only; mirrors the seed data in supabase/schema.sql
+    bookings.json       # reference-only; mirrors the seed data in supabase/schema.sql
   lib/
-    storage.ts       # read/write helpers for the JSON data files
+    supabaseClient.ts   # server-side Supabase client (service_role key)
   routes/
     bookings.ts
     properties.ts
   types/
-    booking.d.ts      # NewBooking / Booking types
-  index.ts            # app entry point
+    booking.d.ts        # NewBooking / Booking types
+    property.d.ts        # Property type
+  index.ts              # app entry point
 ```

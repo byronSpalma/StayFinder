@@ -58,5 +58,15 @@
     "check_out": "2026-12-03",
     "booking_id": "booking_6527",
     "status": "pending"
+  },
+  {
+    "property_id": "property_1002",
+    "guest_name": "Räkan Johansson",
+    "guests": 3,
+    "guest_email": "erik.johansson@example.com",
+    "check_in": "2027-11-12",
+    "check_out": "2027-11-15",
+    "status": "pending",
+    "booking_id": "booking_9195"
   }
 ]

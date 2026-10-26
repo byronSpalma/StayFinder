@@ -1,7 +1,7 @@
 {
   "name": "stayfinder-hono-api",
   "version": "1.0.0",
-  "description": "StayFinder API - a Hono + TypeScript backend using JSON files as a stand-in database",
+  "description": "StayFinder API - a Hono + TypeScript backend using Supabase (PostgreSQL) as the database",
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
@@ -11,6 +11,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.2",
+    "@supabase/supabase-js": "^2.118.0",
     "hono": "^4.6.14",
     "zod": "^3.24.1"
   },
