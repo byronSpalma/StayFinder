@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { supabase } from "../lib/supabaseClient.js";
-import type { Booking, NewBooking } from "../types/booking.js";
+import type { Booking } from "../types/booking.js";
 
 const bookingStatusSchema = z.enum(["pending", "confirmed", "cancelled"]);
 
@@ -110,7 +110,7 @@ bookings.put("/:id", bookingValidator(newBookingBodySchema), async (c) => {
 
 bookings.patch("/:id", bookingValidator(patchBookingBodySchema), async (c) => {
   const id = c.req.param("id");
-  const patchData: Partial<NewBooking> = c.req.valid("json");
+  const patchData: Partial<Booking> = c.req.valid("json");
 
   const { data, error } = await supabase
     .from("bookings")

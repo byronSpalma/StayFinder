@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { bookings } from "./routes/bookings.js";
 import { properties } from "./routes/properties.js";
 
-const app = new Hono();
+const app = new Hono({ strict: false });
 
 app.use("/*", serveStatic({ root: "./public" }));
 
