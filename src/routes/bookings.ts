@@ -20,6 +20,14 @@ const newBookingBodySchema = z.object({
 // Same fields, but every field is optional (used for PATCH).
 const patchBookingBodySchema = newBookingBodySchema.partial();
 
+// Returns 400 with { errors: [...] } when the request body fails validation.
+const bookingValidator = <T extends z.ZodTypeAny>(schema: T) =>
+  zValidator("json", schema, (result, c) => {
+    if (!result.success) {
+      return c.json({ errors: result.error.issues }, 400);
+    }
+  });
+
 export const bookings = new Hono();
 
 bookings.get("/", async (c) => {
@@ -50,7 +58,7 @@ bookings.get("/:id", async (c) => {
   return c.json(data as Booking);
 });
 
-bookings.post("/", zValidator("json", newBookingBodySchema), async (c) => {
+bookings.post("/", bookingValidator(newBookingBodySchema), async (c) => {
   const body = c.req.valid("json");
 
   const newBooking: Booking = {
@@ -72,7 +80,7 @@ bookings.post("/", zValidator("json", newBookingBodySchema), async (c) => {
   return c.json(data as Booking, 201);
 });
 
-bookings.put("/:id", zValidator("json", newBookingBodySchema), async (c) => {
+bookings.put("/:id", bookingValidator(newBookingBodySchema), async (c) => {
   const id = c.req.param("id");
   const body = c.req.valid("json");
 
@@ -100,7 +108,7 @@ bookings.put("/:id", zValidator("json", newBookingBodySchema), async (c) => {
   return c.json(data as Booking);
 });
 
-bookings.patch("/:id", zValidator("json", patchBookingBodySchema), async (c) => {
+bookings.patch("/:id", bookingValidator(patchBookingBodySchema), async (c) => {
   const id = c.req.param("id");
   const patchData: Partial<NewBooking> = c.req.valid("json");
 
