@@ -8,6 +8,7 @@ export interface NewBooking {
   guest_email: string;
   check_in: string;
   check_out: string;
+  guests: number;
   status?: BookingStatus;
 }
 
