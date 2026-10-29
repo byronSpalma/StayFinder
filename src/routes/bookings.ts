@@ -22,6 +22,15 @@ const patchBookingBodySchema = newBookingBodySchema.partial();
 
 export const bookings = new Hono();
 
+bookings.get("/", async (c) => {
+  const { data, error } = await supabase.from("bookings").select("*");
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  return c.json(data as Booking[]);
+});
+
 bookings.get("/:id", async (c) => {
   const id = c.req.param("id");
 
