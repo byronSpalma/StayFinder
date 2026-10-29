@@ -1,12 +1,11 @@
 import { serve } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { bookings } from "./routes/bookings.js";
 import { properties } from "./routes/properties.js";
 
 const app = new Hono({ strict: false });
 
-app.use("/*", serveStatic({ root: "./public" }));
+app.get("/", (c) => c.text("StayFinder API"));
 
 app.route("/bookings", bookings);
 app.route("/properties", properties);
