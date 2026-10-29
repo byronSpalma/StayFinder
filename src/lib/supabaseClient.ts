@@ -5,11 +5,11 @@ const supabaseServiceRoleKey = process.env.SUPABASE_ANON_KEY!
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   throw new Error(
-    "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables. " +
+    "Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables. " +
       "Copy .env.example to .env and fill in your Supabase project settings."
   );
 }
 
-// Server-only client using the service_role key, so it bypasses Row Level
-// Security. Never import this module into client-side/browser code.
+// Client using the anon key, so Row Level Security applies to every query.
+// Keep the key in .env and never commit it.
 export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);

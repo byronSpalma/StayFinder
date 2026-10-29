@@ -39,7 +39,7 @@ live in the JSON files.
 ### Configure environment variables
 
 Copy the example file and fill in your Supabase project's URL and
-`service_role` key (found under **Project Settings → API** in the dashboard):
+`anon` key (found under **Project Settings → API** in the dashboard):
 
 ```bash
 cp .env.example .env
@@ -49,7 +49,7 @@ cp .env.example .env
 | ---------------------------- | ----------------------------------------------------- | ------- |
 | `HONO_PORT`                  | Port the server listens on                             | `3000`  |
 | `SUPABASE_URL`                | Your Supabase project URL                               | —       |
-| `SUPABASE_SERVICE_ROLE_KEY`   | Supabase `service_role` secret key (server-side only)   | —       |
+| `SUPABASE_ANON_KEY`           | Supabase `anon` (public) key; Row Level Security applies | —       |
 
 ### Run in development
 
@@ -111,7 +111,7 @@ src/
     properties.json    # reference-only; mirrors the seed data in supabase/schema.sql
     bookings.json       # reference-only; mirrors the seed data in supabase/schema.sql
   lib/
-    supabaseClient.ts   # server-side Supabase client (service_role key)
+    supabaseClient.ts   # Supabase client (anon key)
   routes/
     bookings.ts
     properties.ts
