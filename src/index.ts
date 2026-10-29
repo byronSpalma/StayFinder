@@ -10,7 +10,7 @@ app.get("/", (c) => c.text("StayFinder API"));
 app.route("/bookings", bookings);
 app.route("/properties", properties);
 
-const port = Number(process.env.HONO_PORT ?? 3000);
+const port = Number(process.env.HONO_PORT) || 3000;
 
 serve({ fetch: app.fetch, port }, (info) => {
   console.log(`StayFinder API listening on http://localhost:${info.port}`);
