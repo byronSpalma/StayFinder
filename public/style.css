@@ -6,3 +6,79 @@ body {
   margin: 0;
   font-family: system-ui, sans-serif;
 }
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #ddd;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-user {
+  color: #555;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  color: #06c;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+main {
+  max-width: 32rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.auth-form input {
+  font: inherit;
+  padding: 0.5rem;
+}
+
+.auth-form button[type="submit"] {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.message {
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.message.error {
+  background: #fee;
+  color: #900;
+}
+
+.message.info {
+  background: #efe;
+  color: #060;
+}
