@@ -13,7 +13,10 @@ export interface NewBooking {
 }
 
 // Shape of a booking once it is stored (id and status are always set).
+// user_id is set by the server from the verified user, never by the client,
+// so it is not part of NewBooking. It is null for old rows without an owner.
 export interface Booking extends NewBooking {
   booking_id: string;
   status: BookingStatus;
+  user_id: string | null;
 }

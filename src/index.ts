@@ -4,12 +4,14 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { bookings } from "./routes/bookings.js";
 import { properties } from "./routes/properties.js";
+import { auth } from "./routes/auth.js";
 
 const app = new Hono({ strict: false });
 
 // API routes are registered first so the static handler below never shadows them.
 app.route("/bookings", bookings);
 app.route("/properties", properties);
+app.route("/auth", auth);
 
 app.get("/", serveStatic({ path: "./public/index.html" }));
 app.use("/*", serveStatic({ root: "./public" }));

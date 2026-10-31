@@ -1,12 +1,14 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { supabase } from "../lib/supabaseClient.js";
+import { requireAuth } from "../middleware/auth.js";
+import type { AuthVariables } from "../types/auth.js";
 import type { Booking } from "../types/booking.js";
 
 const bookingStatusSchema = z.enum(["pending", "confirmed", "cancelled"]);
 
-// Fields a client provides; booking_id and status are filled in by the server.
+// Fields a client provides; booking_id, status and user_id are filled in by the server.
+// user_id is deliberately not in the schema, so it is stripped if a client sends it.
 const newBookingBodySchema = z.object({
   property_id: z.string().min(1, "property_id is required"),
   guest_name: z.string().min(1, "guest_name is required"),
@@ -28,10 +30,13 @@ const bookingValidator = <T extends z.ZodTypeAny>(schema: T) =>
     }
   });
 
-export const bookings = new Hono();
+export const bookings = new Hono<{ Variables: AuthVariables }>();
+
+// Every booking route requires a logged-in user and uses the client carrying that user's JWT.
+bookings.use(requireAuth);
 
 bookings.get("/", async (c) => {
-  const { data, error } = await supabase.from("bookings").select("*");
+  const { data, error } = await c.get("db").from("bookings").select("*");
   if (error) {
     return c.json({ error: error.message }, 500);
   }
@@ -42,7 +47,7 @@ bookings.get("/", async (c) => {
 bookings.get("/:id", async (c) => {
   const id = c.req.param("id");
 
-  const { data, error } = await supabase
+  const { data, error } = await c.get("db")
     .from("bookings")
     .select("*")
     .eq("booking_id", id)
@@ -65,9 +70,11 @@ bookings.post("/", bookingValidator(newBookingBodySchema), async (c) => {
     ...body,
     booking_id: `booking_${Math.floor(1000 + Math.random() * 9000)}`,
     status: body.status ?? "pending",
+    // The owner always comes from the verified token, never from the request body.
+    user_id: c.get("user").id,
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await c.get("db")
     .from("bookings")
     .insert(newBooking)
     .select()
@@ -85,13 +92,14 @@ bookings.put("/:id", bookingValidator(newBookingBodySchema), async (c) => {
   const body = c.req.valid("json");
 
   // The id always comes from the URL, never from the request body.
-  const updatedBooking: Booking = {
+  // user_id is left out on purpose, so a PUT can never change who owns the booking.
+  const updatedBooking: Omit<Booking, "user_id"> = {
     ...body,
     booking_id: id,
     status: body.status ?? "pending",
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await c.get("db")
     .from("bookings")
     .update(updatedBooking)
     .eq("booking_id", id)
@@ -110,9 +118,10 @@ bookings.put("/:id", bookingValidator(newBookingBodySchema), async (c) => {
 
 bookings.patch("/:id", bookingValidator(patchBookingBodySchema), async (c) => {
   const id = c.req.param("id");
-  const patchData: Partial<Booking> = c.req.valid("json");
+  // user_id is excluded from the type: a PATCH can never change who owns the booking.
+  const patchData: Partial<Omit<Booking, "user_id">> = c.req.valid("json");
 
-  const { data, error } = await supabase
+  const { data, error } = await c.get("db")
     .from("bookings")
     .update(patchData)
     .eq("booking_id", id)
@@ -132,7 +141,7 @@ bookings.patch("/:id", bookingValidator(patchBookingBodySchema), async (c) => {
 bookings.delete("/:id", async (c) => {
   const id = c.req.param("id");
 
-  const { data, error } = await supabase
+  const { data, error } = await c.get("db")
     .from("bookings")
     .delete()
     .eq("booking_id", id)
