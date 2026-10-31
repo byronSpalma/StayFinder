@@ -25,11 +25,71 @@ const propertyValidator = <T extends z.ZodTypeAny>(schema: T) =>
     }
   });
 
+// An empty query value (?max_price=) counts as if the parameter was not sent.
+const emptyToUndefined = (value: unknown) =>
+  typeof value === "string" && value.trim() === "" ? undefined : value;
+
+// Optional filters and sorting for GET /properties. Unknown parameters are ignored.
+const listQuerySchema = z.object({
+  location: z.preprocess(emptyToUndefined, z.string().trim().max(100).optional()),
+  max_price: z.preprocess(
+    emptyToUndefined,
+    z.coerce
+      .number({ invalid_type_error: "max_price must be a number" })
+      .finite("max_price must be a number")
+      .positive("max_price must be greater than 0")
+      .optional()
+  ),
+  guests: z.preprocess(
+    emptyToUndefined,
+    z.coerce
+      .number({ invalid_type_error: "guests must be a number" })
+      .int("guests must be a whole number")
+      .positive("guests must be greater than 0")
+      .optional()
+  ),
+  sort: z.preprocess(
+    emptyToUndefined,
+    z.enum(["price_asc", "price_desc"], {
+      errorMap: () => ({ message: "sort must be price_asc or price_desc" }),
+    }).optional()
+  ),
+});
+
+// Same 400 { errors: [...] } format, but for query parameters.
+const listQueryValidator = zValidator("query", listQuerySchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ errors: result.error.issues }, 400);
+  }
+});
+
+// In LIKE/ILIKE patterns % matches any text and _ matches one character.
+// Escaping them (and the backslash itself) makes the user's text match literally.
+const escapeLike = (text: string) => text.replace(/[\\%_]/g, "\\$&");
+
 export const properties = new Hono<{ Variables: AuthVariables }>();
 
 // Reading is open to everyone, so these use the shared client.
-properties.get("/", async (c) => {
-  const { data, error } = await supabase.from("properties").select("*");
+properties.get("/", listQueryValidator, async (c) => {
+  const { location, max_price, guests, sort } = c.req.valid("query");
+
+  let query = supabase.from("properties").select("*");
+
+  if (location) {
+    query = query.ilike("location", `%${escapeLike(location)}%`);
+  }
+  if (max_price !== undefined) {
+    query = query.lte("price_per_night", max_price);
+  }
+  if (guests !== undefined) {
+    query = query.gte("max_guests", guests);
+  }
+  // Sorting is done by the database. Without sort the order is unchanged.
+  if (sort) {
+    query = query.order("price_per_night", { ascending: sort === "price_asc" });
+  }
+
+  const { data, error } = await query;
   if (error) {
     return c.json({ error: error.message }, 500);
   }

@@ -78,7 +78,7 @@ npm start
 
 | Method | Path              | Auth   | Description                                                  | Status |
 | ------ | ----------------- | ------ | ------------------------------------------------------------ | ------ |
-| GET    | `/properties`     | –      | List all properties                                          | `200` |
+| GET    | `/properties`     | –      | List properties. Optional filters and sorting, see below     | `200`, `400` |
 | GET    | `/properties/:id` | –      | Get a single property by id                                  | `200`, `404` |
 | POST   | `/properties`     | Bearer | Create a property. `owner_id` is set from the logged-in user | `201`, `400`, `401` |
 | PUT    | `/properties/:id` | Bearer | Replace a property's fields (owner only)                     | `200`, `400`, `401`, `404` |
@@ -86,6 +86,29 @@ npm start
 
 `POST` and `PUT` body: `{ title, description, location, price_per_night, max_guests }`.
 `property_id` and `owner_id` are never read from the body.
+
+#### Filtering and sorting `GET /properties`
+
+All query parameters are optional and can be combined. Unknown parameters are ignored,
+and an empty value (`?max_price=`) counts as not sent.
+
+| Parameter   | Meaning                                                              | Valid values |
+| ----------- | -------------------------------------------------------------------- | ------------ |
+| `location`  | Case-insensitive substring match on `location`                        | any text, max 100 characters |
+| `max_price` | Only properties with `price_per_night <= max_price`                   | a number greater than 0 |
+| `guests`    | Only properties that fit at least this many guests (`max_guests >= guests`) | a whole number greater than 0 |
+| `sort`      | Sort by `price_per_night`. Done by the database. Without it the order is unchanged. | `price_asc` or `price_desc` |
+
+Invalid values return `400` with `{ "errors": [...] }`. No match returns `200` with `[]`.
+`%`, `_` and `\` in `location` are escaped, so they are matched as plain characters.
+
+```bash
+curl "http://localhost:3000/properties?location=stockholm"
+curl "http://localhost:3000/properties?max_price=900"
+curl "http://localhost:3000/properties?guests=4"
+curl "http://localhost:3000/properties?sort=price_asc"
+curl "http://localhost:3000/properties?location=sweden&guests=3&max_price=1000&sort=price_desc"
+```
 
 ### Bookings
 
