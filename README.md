@@ -196,3 +196,10 @@ src/
     property.d.ts        # NewProperty / Property types
   index.ts              # app entry point
 ```
+
+
+// {"email":"byron.s.palma@outlook.com",
+// "password":"Testlösenord123"}
+// {"email":"byron.palma2002@yahoo.se",
+//"password":"Testlösenord123"}
+
