@@ -50,6 +50,7 @@ cp .env.example .env
 | `HONO_PORT`                  | Port the server listens on                             | `3000`  |
 | `SUPABASE_URL`                | Your Supabase project URL                               | —       |
 | `SUPABASE_ANON_KEY`           | Supabase `anon` (public) key; Row Level Security applies | —       |
+| `EMAIL_REDIRECT_URL`          | Optional. Where the email confirmation link sends the user. Must be in Supabase's Redirect URLs; defaults to the project's Site URL | — |
 
 ### Run in development
 
@@ -87,6 +88,27 @@ npm start
 
 `PUT`, `PATCH` and `DELETE` return `404` if the booking id does not exist.
 
+### Auth (Supabase Auth, email + password)
+
+"Confirm email" is enabled in Supabase, so a new user must click the link in the
+confirmation email before they can log in.
+
+| Method | Path             | Auth             | Body                          | Success | Errors |
+| ------ | ---------------- | ---------------- | ----------------------------- | ------- | ------ |
+| POST   | `/auth/register` | –                | `{ email, password }`         | `201` `{ message, email_confirmation_required }` (no tokens) | `400` invalid body, `409`/`422`/`429`/`500` |
+| POST   | `/auth/login`    | –                | `{ email, password }`         | `200` `{ access_token, refresh_token, token_type, expires_in, expires_at, user }` | `400`, `401` wrong credentials, `403` email not confirmed, `429` |
+| POST   | `/auth/refresh`  | –                | `{ refresh_token }`           | `200` new session (same shape as login) | `400`, `401` invalid/expired refresh token |
+| POST   | `/auth/logout`   | `Bearer` access token | `{ refresh_token }`      | `200` `{ message }` | `400`, `401` |
+| GET    | `/auth/me`       | `Bearer` access token | –                        | `200` `{ id, email, email_confirmed_at, created_at }` | `401` |
+
+Send the access token as `Authorization: Bearer <access_token>`. The `requireAuth`
+middleware (`src/middleware/auth.ts`) verifies it with `supabase.auth.getUser(token)`.
+
+Limitations: `/auth/logout` ends the session on Supabase's side, but the access
+token is a signed JWT and stays valid until it expires, so the client must also
+discard both tokens. The existing `/properties` and `/bookings` routes are not
+protected yet.
+
 ### Example: create a booking
 
 ```bash
@@ -111,11 +133,15 @@ src/
     properties.json    # reference-only; mirrors the seed data in supabase/schema.sql
     bookings.json       # reference-only; mirrors the seed data in supabase/schema.sql
   lib/
-    supabaseClient.ts   # Supabase client (anon key)
+    supabaseClient.ts   # shared Supabase client + per-request auth/user client factories
+  middleware/
+    auth.ts             # requireAuth: verifies the access token
   routes/
+    auth.ts
     bookings.ts
     properties.ts
   types/
+    auth.d.ts           # variables requireAuth puts on the Hono context
     booking.d.ts        # NewBooking / Booking types
     property.d.ts        # Property type
   index.ts              # app entry point
