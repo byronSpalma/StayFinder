@@ -6,7 +6,9 @@ import { clearSession, getSession, loadSession, saveSession } from "./session.js
 import { parseHash, startRouter } from "./router.js";
 import {
   renderNotFound,
+  renderPropertyCreate,
   renderPropertyDetail,
+  renderPropertyEdit,
   renderPropertyList,
 } from "./properties.js";
 import type { MeResponse, RegisterResponse, Session } from "./types.js";
@@ -95,8 +97,11 @@ function renderNav(): void {
 
   const session = getSession();
   if (session) {
+    const createLink = el("a", "nav-link", "Create property") as HTMLAnchorElement;
+    createLink.href = "#/properties/new";
     nav.append(
       homeLink,
+      createLink,
       el("span", "nav-user", session.user.email),
       Object.assign(el("button", "nav-link", "Log out"), {
         type: "button",
@@ -118,7 +123,7 @@ function renderNav(): void {
   }
 }
 
-function renderAuth(mode: "login" | "register"): void {
+function renderAuth(mode: "login" | "register", notice?: string): void {
   if (!app) {
     return;
   }
@@ -128,6 +133,10 @@ function renderAuth(mode: "login" | "register"): void {
   const title = el("h2", undefined, isLogin ? "Log in" : "Create an account");
   const form = el("form", "auth-form") as HTMLFormElement;
   const messages = el("div", "messages");
+
+  if (notice) {
+    showMessage(messages, notice, "info");
+  }
 
   const emailLabel = el("label", undefined, "Email");
   const emailInput = Object.assign(el("input"), {
@@ -225,6 +234,19 @@ function route(): void {
     renderPropertyList(app);
   } else if (current.name === "detail") {
     renderPropertyDetail(app, current.id);
+  } else if (current.name === "new") {
+    // Creating a property requires login; send logged-out users to the login view.
+    if (!getSession()) {
+      renderAuth("login", "You need to log in to create a property.");
+    } else {
+      renderPropertyCreate(app);
+    }
+  } else if (current.name === "edit") {
+    if (!getSession()) {
+      renderAuth("login", "You need to log in to edit a property.");
+    } else {
+      renderPropertyEdit(app, current.id);
+    }
   } else {
     renderNotFound(app);
   }

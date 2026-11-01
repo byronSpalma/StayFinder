@@ -2,7 +2,9 @@
 // All data comes from the backend; filtering and sorting happen there.
 
 import { apiFetch, ApiError } from "./api.js";
-import type { Property, PropertyQuery } from "./types.js";
+import { getSession } from "./session.js";
+import { renderPropertyForm } from "./propertyForm.js";
+import type { DeletePropertyResponse, Property, PropertyQuery } from "./types.js";
 
 // --- Small DOM helper (same pattern as main.ts) -------------------------------
 
@@ -70,6 +72,7 @@ export function renderPropertyList(container: HTMLElement): void {
   const listContainer = el("div", "property-list");
   const form = buildFilterForm((query) => void loadList(listContainer, query));
   container.append(el("h2", undefined, "Properties"), form, listContainer);
+  renderFlash(container);
 
   void loadList(listContainer, {});
 }
@@ -184,10 +187,32 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
       el("p", "property-location", property.location),
       el("p", undefined, property.description),
       el("p", undefined, `Price: ${property.price_per_night} kr per night`),
-      el("p", undefined, `Max guests: ${property.max_guests}`),
-      // Placeholder: the booking form is added in the next step.
-      el("p", "state", "Booking form coming soon.")
+      el("p", undefined, `Max guests: ${property.max_guests}`)
     );
+    renderFlash(container);
+
+    // Show Edit/Delete only when the logged-in user owns this property.
+    // This is only the UI: the real protection is in the backend and RLS,
+    // which reject changes to other users' properties even if these buttons
+    // were shown by mistake.
+    const session = getSession();
+    if (session && session.user.id === property.owner_id) {
+      const actions = el("div", "property-actions");
+
+      const editLink = el("a", "button-link", "Edit") as HTMLAnchorElement;
+      editLink.href = `#/properties/${encodeURIComponent(property.property_id)}/edit`;
+
+      const deleteButton = Object.assign(el("button", "danger", "Delete"), {
+        type: "button",
+        onclick: () => void handleDelete(container, property),
+      });
+
+      actions.append(editLink, deleteButton);
+      container.append(actions);
+    }
+
+    // Placeholder: the booking form is added in the next step.
+    container.append(el("p", "state", "Booking form coming soon."));
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       container.textContent = "";
@@ -205,8 +230,91 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
   }
 }
 
-// --- Not found -----------------------------------------------------------------
+// --- Create / edit / delete ----------------------------------------------------
 
+// #/properties/new — only for logged-in users (the nav link is hidden otherwise).
+export function renderPropertyCreate(container: HTMLElement): void {
+  renderPropertyForm(container, {
+    onSaved: (property) => {
+      window.location.hash = `#/properties/${encodeURIComponent(property.property_id)}`;
+      showFlash("Property created.");
+    },
+    onCancel: () => {
+      window.location.hash = "#/properties";
+    },
+  });
+}
+
+// #/properties/<id>/edit — loads the property first, then shows the same form prefilled.
+export function renderPropertyEdit(container: HTMLElement, id: string): void {
+  container.textContent = "";
+  showLoading(container, "property");
+
+  void (async () => {
+    try {
+      const property = await fetchProperty(id);
+      renderPropertyForm(container, {
+        initial: property,
+        onSaved: (saved) => {
+          window.location.hash = `#/properties/${encodeURIComponent(saved.property_id)}`;
+          showFlash("Property updated.");
+        },
+        onCancel: () => {
+          window.location.hash = `#/properties/${encodeURIComponent(id)}`;
+        },
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        container.textContent = "";
+        const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
+        backLink.href = "#/properties";
+        container.append(
+          el("h2", undefined, "Property not found"),
+          el("p", "state", "This property does not exist or has been removed."),
+          backLink
+        );
+        return;
+      }
+      const message = error instanceof ApiError ? error.message : "Could not load the property.";
+      showError(container, message, () => renderPropertyEdit(container, id));
+    }
+  })();
+}
+
+async function handleDelete(container: HTMLElement, property: Property): Promise<void> {
+  if (!window.confirm(`Delete "${property.title}"? This cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    await apiFetch<DeletePropertyResponse>(
+      `/properties/${encodeURIComponent(property.property_id)}`,
+      { method: "DELETE" }
+    );
+    window.location.hash = "#/properties";
+    showFlash("Property deleted.");
+  } catch (error) {
+    const message = error instanceof ApiError ? error.message : "Could not delete the property.";
+    showError(container, message, () => void loadDetail(container, property.property_id));
+  }
+}
+
+// A short-lived confirmation message shown after navigating to a new view.
+let flashMessage: string | null = null;
+
+function showFlash(message: string): void {
+  flashMessage = message;
+}
+
+// Renders (and clears) the pending flash message, if any. Called by every view.
+export function renderFlash(container: HTMLElement): void {
+  if (flashMessage) {
+    container.prepend(el("p", "message info", flashMessage));
+    flashMessage = null;
+  }
+}
+
+// --- Not found -----------------------------------------------------------------
 export function renderNotFound(container: HTMLElement): void {
   container.textContent = "";
   const homeLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
