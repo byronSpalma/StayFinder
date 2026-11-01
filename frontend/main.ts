@@ -292,7 +292,8 @@ function renderFinderPanel(onSearch: (query: PropertyQuery) => void): void {
 
 // --- Navigation ----------------------------------------------------------------
 
-// Marks the pill link matching the current route with aria-current="page".
+// Marks Host and Bookings with aria-current="page" when on their routes.
+// Main and Stays both point to the list route, so they are never marked.
 function markCurrentRoute(): void {
   if (!nav) {
     return;
@@ -300,7 +301,9 @@ function markCurrentRoute(): void {
   const hash = window.location.hash || "#/properties";
   const links = nav.querySelectorAll<HTMLAnchorElement>(".pill-link[href]");
   for (const link of links) {
-    const isCurrent = link.hash === hash;
+    // Only Host (#/properties/new) and Bookings (#/bookings) can be current.
+    const isCurrent =
+      (link.hash === "#/properties/new" || link.hash === "#/bookings") && link.hash === hash;
     link.classList.toggle("current", isCurrent);
     if (isCurrent) {
       link.setAttribute("aria-current", "page");
