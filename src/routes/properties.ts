@@ -97,6 +97,23 @@ properties.get("/", listQueryValidator, async (c) => {
   return c.json(data as Property[]);
 });
 
+// GET /properties/mine must be registered BEFORE GET /:id, otherwise "mine"
+// would be interpreted as a property id.
+properties.get("/mine", requireAuth, async (c) => {
+  const userId = c.get("user").id;
+
+  const { data, error } = await c.get("db")
+    .from("properties")
+    .select("*")
+    .eq("owner_id", userId);
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  return c.json(data as Property[]);
+});
+
 properties.get("/:id", async (c) => {
   const id = c.req.param("id");
   const { data, error } = await supabase

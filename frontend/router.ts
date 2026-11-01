@@ -9,6 +9,7 @@ export type Route =
   | { name: "register" }
   | { name: "bookings" }
   | { name: "booking-edit"; id: string }
+  | { name: "host" }
   | { name: "not-found" };
 
 // Turns "#/properties/property_1001" into a route.
@@ -42,6 +43,9 @@ export function parseHash(hash: string): Route {
   }
   if (parts[0] === "bookings" && parts.length === 3 && parts[1] && parts[2] === "edit") {
     return { name: "booking-edit", id: decodeURIComponent(parts[1]) };
+  }
+  if (parts[0] === "host" && parts.length === 1) {
+    return { name: "host" };
   }
   return { name: "not-found" };
 }

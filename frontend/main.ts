@@ -12,6 +12,7 @@ import {
   renderPropertyList,
 } from "./properties.js";
 import { renderBookingEdit, renderBookingList } from "./bookings.js";
+import { renderHostList } from "./host.js";
 import { searchProperties } from "./properties.js";
 import type { MeResponse, PropertyQuery, RegisterResponse, Session } from "./types.js";
 
@@ -141,7 +142,7 @@ function renderMobileMenu(): void {
 
   if (session) {
     const hostLink = el("a", "mobile-menu-link", "Host") as HTMLAnchorElement;
-    hostLink.href = "#/properties/new";
+    hostLink.href = "#/host";
     hostLink.addEventListener("click", closeMenu);
 
     const bookingsLink = el("a", "mobile-menu-link", "Bookings") as HTMLAnchorElement;
@@ -301,9 +302,12 @@ function markCurrentRoute(): void {
   const hash = window.location.hash || "#/properties";
   const links = nav.querySelectorAll<HTMLAnchorElement>(".pill-link[href]");
   for (const link of links) {
-    // Only Host (#/properties/new) and Bookings (#/bookings) can be current.
+    // Host is current on #/host, #/properties/new and #/properties/<id>/edit.
+    // Bookings is current on #/bookings and #/bookings/<id>/edit.
     const isCurrent =
-      (link.hash === "#/properties/new" || link.hash === "#/bookings") && link.hash === hash;
+      (link.hash === "#/host" &&
+        (hash === "#/host" || hash === "#/properties/new" || hash.startsWith("#/properties/"))) ||
+      (link.hash === "#/bookings" && hash.startsWith("#/bookings"));
     link.classList.toggle("current", isCurrent);
     if (isCurrent) {
       link.setAttribute("aria-current", "page");
@@ -335,7 +339,7 @@ function renderNav(): void {
 
   if (session) {
     const hostLink = el("a", "pill-link", "Host") as HTMLAnchorElement;
-    hostLink.href = "#/properties/new";
+    hostLink.href = "#/host";
     const bookingsLink = el("a", "pill-link", "Bookings") as HTMLAnchorElement;
     bookingsLink.href = "#/bookings";
     nav.append(hostLink, bookingsLink);
@@ -509,6 +513,12 @@ function route(): void {
       window.location.hash = "#/login";
     } else {
       renderBookingEdit(app, current.id);
+    }
+  } else if (current.name === "host") {
+    if (!getSession()) {
+      window.location.hash = "#/login";
+    } else {
+      renderHostList(app);
     }
   } else {
     renderNotFound(app);
