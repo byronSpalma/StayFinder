@@ -66,7 +66,7 @@ export function renderBookingForm(
 
   // Logged-out users get a prompt instead of the form.
   if (!session) {
-    const loginLink = el("a", "button-link", "Log in to book") as HTMLAnchorElement;
+    const loginLink = el("a", "btn btn-primary", "Log in to book") as HTMLAnchorElement;
     loginLink.href = "#/login";
     container.append(
       el("h3", undefined, "Book this property"),
@@ -78,7 +78,7 @@ export function renderBookingForm(
 
   container.append(el("h3", undefined, "Book this property"));
 
-  const form = el("form", "auth-form") as HTMLFormElement;
+  const form = el("form") as HTMLFormElement;
   const messages = el("div", "messages");
   const summary = el("p", "booking-summary");
 
@@ -89,7 +89,7 @@ export function renderBookingForm(
   const emailInput = textField(form, "Your email", session.user.email);
   emailInput.type = "email";
 
-  const submit = Object.assign(el("button", undefined, "Book"), { type: "submit" });
+  const submit = Object.assign(el("button", "btn btn-primary", "Book"), { type: "submit" });
   submit.dataset.label = "Book";
 
   form.append(submit, messages, summary);
@@ -169,10 +169,12 @@ export function renderBookingForm(
 }
 
 function dateField(form: HTMLFormElement, label: string, min: string): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type: "date", required: true, min });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  form.append(fieldContainer);
   return input;
 }
 
@@ -182,6 +184,7 @@ function numberField(
   value: string,
   max: number
 ): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), {
     type: "number",
@@ -192,15 +195,18 @@ function numberField(
     value,
   });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  form.append(fieldContainer);
   return input;
 }
 
 function textField(form: HTMLFormElement, label: string, value: string): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type: "text", required: true, value });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  form.append(fieldContainer);
   return input;
 }
 

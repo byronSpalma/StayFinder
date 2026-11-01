@@ -255,14 +255,16 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
   app.textContent = "";
 
   const isLogin = mode === "login";
+  const container = el("div", "form-container");
   const title = el("h2", undefined, isLogin ? "Log in" : "Create an account");
-  const form = el("form", "auth-form") as HTMLFormElement;
+  const form = el("form") as HTMLFormElement;
   const messages = el("div", "messages");
 
   if (notice) {
     showMessage(messages, notice, "info");
   }
 
+  const emailField = el("div", "form-field");
   const emailLabel = el("label", undefined, "Email");
   const emailInput = Object.assign(el("input"), {
     type: "email",
@@ -271,7 +273,9 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
     autocomplete: "email",
   });
   emailLabel.append(emailInput);
+  emailField.append(emailLabel);
 
+  const passwordField = el("div", "form-field");
   const passwordLabel = el("label", undefined, "Password");
   const passwordInput = Object.assign(el("input"), {
     type: "password",
@@ -281,17 +285,19 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
     autocomplete: isLogin ? "current-password" : "new-password",
   });
   passwordLabel.append(passwordInput);
+  passwordField.append(passwordLabel);
 
-  const submit = Object.assign(el("button", undefined, isLogin ? "Log in" : "Register"), {
+  const submit = Object.assign(el("button", "btn btn-primary", isLogin ? "Log in" : "Register"), {
     type: "submit",
   });
   submit.dataset.label = isLogin ? "Log in" : "Register";
 
-  const switchLink = el("a", "nav-link", isLogin ? "Need an account? Register" : "Already have an account? Log in") as HTMLAnchorElement;
+  const switchLink = el("a", "btn btn-secondary", isLogin ? "Need an account? Register" : "Already have an account? Log in") as HTMLAnchorElement;
   switchLink.href = isLogin ? "#/register" : "#/login";
 
-  form.append(emailLabel, passwordLabel, submit, messages, switchLink);
-  app.append(title, form);
+  form.append(emailField, passwordField, submit, messages, switchLink);
+  container.append(title, form);
+  app.append(container);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();

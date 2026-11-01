@@ -89,31 +89,31 @@ function buildBookingCard(
   const total = nights !== null && property ? nights * property.price_per_night : null;
 
   const statusText = booking.status === "cancelled" ? "Cancelled" : booking.status;
-  const statusClass = booking.status === "cancelled" ? "booking-status cancelled" : "booking-status";
+  const statusClass = `booking-status ${booking.status}`;
 
   card.append(
     el("h3", undefined, title),
     el("p", undefined, `Check-in: ${booking.check_in} · Check-out: ${booking.check_out}`),
     el("p", undefined, `${nights !== null ? `${nights} night${nights === 1 ? "" : "s"}` : "–"} · ${booking.guests} guest${booking.guests === 1 ? "" : "s"}`),
     el("p", undefined, total !== null ? `Total: ${total} kr` : ""),
-    el("p", statusClass, `Status: ${statusText}`)
+    el("span", statusClass, statusText)
   );
 
   const actions = el("div", "property-actions");
 
-  const editLink = el("a", "button-link", "Edit") as HTMLAnchorElement;
+  const editLink = el("a", "btn btn-secondary", "Edit") as HTMLAnchorElement;
   editLink.href = `#/bookings/${encodeURIComponent(booking.booking_id)}/edit`;
   actions.append(editLink);
 
   if (booking.status !== "cancelled") {
-    const cancelButton = Object.assign(el("button", "danger", "Cancel booking"), {
+    const cancelButton = Object.assign(el("button", "btn btn-danger", "Cancel booking"), {
       type: "button",
       onclick: () => void handleCancel(booking, listContainer),
     });
     actions.append(cancelButton);
   }
 
-  const deleteButton = Object.assign(el("button", "danger", "Delete"), {
+  const deleteButton = Object.assign(el("button", "btn btn-danger", "Delete"), {
     type: "button",
     onclick: () => void handleDelete(booking, listContainer),
   });

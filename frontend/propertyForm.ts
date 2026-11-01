@@ -36,9 +36,11 @@ export function renderPropertyForm(
   const isEdit = initial !== undefined;
 
   container.textContent = "";
-  container.append(el("h2", undefined, isEdit ? "Edit property" : "Create a property"));
 
-  const form = el("form", "auth-form") as HTMLFormElement;
+  const formContainer = el("div", "form-container wide");
+  formContainer.append(el("h2", undefined, isEdit ? "Edit property" : "Create a property"));
+
+  const form = el("form") as HTMLFormElement;
   const messages = el("div", "messages");
 
   const titleInput = field(form, "Title", "text", initial?.title ?? "");
@@ -51,18 +53,19 @@ export function renderPropertyForm(
   guestsInput.step = "1";
 
   const submit = Object.assign(
-    el("button", undefined, isEdit ? "Save changes" : "Create property"),
+    el("button", "btn btn-primary", isEdit ? "Save changes" : "Create property"),
     { type: "submit" }
   );
   submit.dataset.label = isEdit ? "Save changes" : "Create property";
 
-  const cancel = Object.assign(el("button", "nav-link", "Cancel"), {
+  const cancel = Object.assign(el("button", "btn btn-secondary", "Cancel"), {
     type: "button",
     onclick: onCancel,
   });
 
   form.append(submit, cancel, messages);
-  container.append(form);
+  formContainer.append(form);
+  container.append(formContainer);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -130,21 +133,25 @@ function field(
   type: string,
   value: string
 ): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type, value, required: true });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  form.append(fieldContainer);
   return input;
 }
 
 function textArea(form: HTMLFormElement, label: string, value: string): HTMLTextAreaElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const textarea = el("textarea") as HTMLTextAreaElement;
   textarea.value = value;
   textarea.required = true;
   textarea.rows = 4;
   labelElement.append(textarea);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  form.append(fieldContainer);
   return textarea;
 }
 

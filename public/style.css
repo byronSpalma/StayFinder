@@ -565,6 +565,217 @@ button {
   background: rgb(255 255 255 / 50%);
 }
 
+/* --- Forms, buttons and messages (Figma stage 5) --- */
+
+/* Form container: centered, rounded, light background. */
+.form-container {
+  max-width: 28rem;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 1.75rem;
+  background: rgb(255 255 255 / 90%);
+  border: 1px solid rgb(24 34 65 / 10%);
+  box-shadow: var(--shadow-panel);
+}
+
+.form-container.wide {
+  max-width: 36rem;
+}
+
+.form-container h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+/* Form fields: same style as finder fields. */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-field label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  margin-bottom: 0.25rem;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  padding: 0.65rem 1.1rem;
+  border-radius: 1.35rem;
+  background: rgb(255 255 255 / 50%);
+  transition: background 200ms;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: var(--color-steel);
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  background: rgb(255 255 255 / 75%);
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+/* Buttons: primary pill in ink, secondary with border, destructive different. */
+.btn {
+  display: inline-block;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background 200ms, color 200ms;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-cream);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-slate);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-mist);
+}
+
+.btn-danger {
+  background: transparent;
+  color: #c00;
+  border: 1px solid #c00;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #fee;
+}
+
+/* Messages: error and info boxes. */
+.message {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.message.error {
+  background: #fee;
+  color: #900;
+  border: 1px solid #fcc;
+}
+
+.message.error::before {
+  content: "Error: ";
+  font-weight: 600;
+}
+
+.message.info {
+  background: #efe;
+  color: #060;
+  border: 1px solid #cfc;
+}
+
+/* --- Booking cards (My bookings) --- */
+
+.booking-list {
+  display: grid;
+  gap: 1rem;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.booking-card {
+  border-radius: 1.75rem;
+  background: var(--color-mist);
+  padding: 1.5rem;
+  border: 1px solid rgb(24 34 65 / 10%);
+}
+
+.booking-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+.booking-card p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+}
+
+.booking-status {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  margin-top: 0.5rem;
+}
+
+.booking-status.pending {
+  background: #ffc;
+  color: #660;
+}
+
+.booking-status.confirmed {
+  background: #cfc;
+  color: #060;
+}
+
+.booking-status.cancelled {
+  background: #fcc;
+  color: #900;
+}
+
+.booking-card .property-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(24 34 65 / 10%);
+}
+
 /* --- Base styles (from stage 1) --- */
 
 main {
