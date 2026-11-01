@@ -247,6 +247,8 @@ function route(): void {
     } else {
       renderPropertyEdit(app, current.id);
     }
+  } else if (current.name === "login") {
+    renderAuth("login");
   } else {
     renderNotFound(app);
   }
