@@ -240,16 +240,11 @@ function renderNav(): void {
       })
     );
   } else {
-    userNav.append(
-      Object.assign(el("button", "user-link", "Log in"), {
-        type: "button",
-        onclick: () => renderAuth("login"),
-      }),
-      Object.assign(el("button", "user-link", "Register"), {
-        type: "button",
-        onclick: () => renderAuth("register"),
-      })
-    );
+    const loginLink = el("a", "user-link", "Log in") as HTMLAnchorElement;
+    loginLink.href = "#/login";
+    const registerLink = el("a", "user-link", "Register") as HTMLAnchorElement;
+    registerLink.href = "#/register";
+    userNav.append(loginLink, registerLink);
   }
 }
 
@@ -292,12 +287,10 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
   });
   submit.dataset.label = isLogin ? "Log in" : "Register";
 
-  const switchButton = Object.assign(
-    el("button", "nav-link", isLogin ? "Need an account? Register" : "Already have an account? Log in"),
-    { type: "button", onclick: () => renderAuth(isLogin ? "register" : "login") }
-  );
+  const switchLink = el("a", "nav-link", isLogin ? "Need an account? Register" : "Already have an account? Log in") as HTMLAnchorElement;
+  switchLink.href = isLogin ? "#/register" : "#/login";
 
-  form.append(emailLabel, passwordLabel, submit, messages, switchButton);
+  form.append(emailLabel, passwordLabel, submit, messages, switchLink);
   app.append(title, form);
 
   form.addEventListener("submit", (event) => {
@@ -320,7 +313,8 @@ async function handleAuthSubmit(
     if (isLogin) {
       await login(email, password);
       renderNav();
-      route();
+      // Navigate to the list after login.
+      window.location.hash = "#/properties";
     } else {
       const result = await register(email, password);
       if (result.email_confirmation_required) {
@@ -349,7 +343,8 @@ async function handleAuthSubmit(
 async function handleLogout(): Promise<void> {
   await logout();
   renderNav();
-  route();
+  // Navigate to the list after logout.
+  window.location.hash = "#/properties";
 }
 
 // --- Startup -----------------------------------------------------------------
@@ -367,27 +362,29 @@ function route(): void {
   } else if (current.name === "new") {
     // Creating a property requires login; send logged-out users to the login view.
     if (!getSession()) {
-      renderAuth("login", "You need to log in to create a property.");
+      window.location.hash = "#/login";
     } else {
       renderPropertyCreate(app);
     }
   } else if (current.name === "edit") {
     if (!getSession()) {
-      renderAuth("login", "You need to log in to edit a property.");
+      window.location.hash = "#/login";
     } else {
       renderPropertyEdit(app, current.id);
     }
   } else if (current.name === "login") {
     renderAuth("login");
+  } else if (current.name === "register") {
+    renderAuth("register");
   } else if (current.name === "bookings") {
     if (!getSession()) {
-      renderAuth("login", "You need to log in to see your bookings.");
+      window.location.hash = "#/login";
     } else {
       renderBookingList(app);
     }
   } else if (current.name === "booking-edit") {
     if (!getSession()) {
-      renderAuth("login", "You need to log in to edit a booking.");
+      window.location.hash = "#/login";
     } else {
       renderBookingEdit(app, current.id);
     }
