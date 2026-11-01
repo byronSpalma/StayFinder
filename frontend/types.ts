@@ -34,3 +34,22 @@ export interface ApiErrorBody {
   error?: string;
   errors?: { path?: (string | number)[]; message: string }[];
 }
+
+// A property as returned by GET /properties and GET /properties/:id.
+export interface Property {
+  property_id: string;
+  title: string;
+  description: string;
+  location: string;
+  price_per_night: number;
+  max_guests: number;
+  owner_id: string | null;
+}
+
+// Optional filters and sorting for GET /properties (all sent as query params).
+export interface PropertyQuery {
+  location?: string;
+  max_price?: number;
+  guests?: number;
+  sort?: "price_asc" | "price_desc";
+}
