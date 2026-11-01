@@ -1,10 +1,56 @@
+/* Design tokens from the Figma prototype. */
+:root {
+  --color-cream: #fff5d9;
+  --color-ink: #182241;
+  --color-slate: #536c7c;
+  --color-steel: #7b949c;
+  --color-mist: #edf0e8;
+  --font-sans: "DM Sans", sans-serif;
+  --font-display: "DM Serif Display", serif;
+  --shadow-nav: 0 0.5rem 2rem rgb(24 34 65 / 8%);
+  --shadow-panel: 0 1.5rem 4rem rgb(24 34 65 / 12%);
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Visible focus for keyboard navigation. */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Turn off all animation when the user prefers reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 header {
@@ -27,17 +73,16 @@ nav {
 }
 
 .nav-user {
-  color: #555;
+  color: var(--color-slate);
 }
 
 .nav-link {
   background: none;
   border: none;
-  color: #06c;
+  color: var(--color-ink);
   cursor: pointer;
   font: inherit;
   padding: 0;
-  text-decoration: underline;
 }
 
 main {
@@ -131,7 +176,7 @@ main {
 }
 
 .property-location {
-  color: #555;
+  color: var(--color-slate);
 }
 
 .property-actions {
@@ -144,9 +189,9 @@ main {
   display: inline-block;
   font: inherit;
   padding: 0.4rem 1rem;
-  border: 1px solid #06c;
+  border: 1px solid var(--color-ink);
   border-radius: 4px;
-  color: #06c;
+  color: var(--color-ink);
   text-decoration: none;
 }
 
@@ -161,13 +206,13 @@ button.danger {
 }
 
 .back-link {
-  color: #06c;
+  color: var(--color-ink);
   display: inline-block;
   margin-bottom: 1rem;
 }
 
 .state {
-  color: #555;
+  color: var(--color-slate);
 }
 
 .booking-summary {
