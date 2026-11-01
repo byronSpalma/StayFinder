@@ -91,6 +91,93 @@ const userNav = document.querySelector<HTMLElement>("#user-nav");
 const finderToggle = document.querySelector<HTMLButtonElement>("#finder-toggle");
 const finderPanel = document.querySelector<HTMLElement>("#finder-panel");
 const finderContent = document.querySelector<HTMLElement>("#finder-content");
+const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle");
+const mobileMenu = document.querySelector<HTMLElement>("#mobile-menu");
+const mobileMenuContent = document.querySelector<HTMLElement>(".mobile-menu-content");
+
+// --- Mobile menu ---------------------------------------------------------------
+
+let menuOpen = false;
+
+function toggleMenu(): void {
+  menuOpen = !menuOpen;
+  if (mobileMenu) {
+    mobileMenu.hidden = !menuOpen;
+    mobileMenu.classList.toggle("open", menuOpen);
+  }
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", String(menuOpen));
+    menuToggle.classList.toggle("open", menuOpen);
+  }
+}
+
+function closeMenu(): void {
+  if (!menuOpen) {
+    return;
+  }
+  menuOpen = false;
+  if (mobileMenu) {
+    mobileMenu.hidden = true;
+    mobileMenu.classList.remove("open");
+  }
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.classList.remove("open");
+  }
+}
+
+// Renders the mobile menu with all links.
+function renderMobileMenu(): void {
+  if (!mobileMenuContent) {
+    return;
+  }
+  mobileMenuContent.textContent = "";
+
+  const session = getSession();
+
+  const propertiesLink = el("a", "mobile-menu-link", "Properties") as HTMLAnchorElement;
+  propertiesLink.href = "#/properties";
+  propertiesLink.addEventListener("click", closeMenu);
+
+  if (session) {
+    const createLink = el("a", "mobile-menu-link", "Create property") as HTMLAnchorElement;
+    createLink.href = "#/properties/new";
+    createLink.addEventListener("click", closeMenu);
+
+    const bookingsLink = el("a", "mobile-menu-link", "My bookings") as HTMLAnchorElement;
+    bookingsLink.href = "#/bookings";
+    bookingsLink.addEventListener("click", closeMenu);
+
+    const emailSpan = el("span", "mobile-menu-email", session.user.email);
+
+    const logoutButton = Object.assign(el("button", "mobile-menu-link", "Log out"), {
+      type: "button",
+      onclick: () => {
+        closeMenu();
+        void handleLogout();
+      },
+    });
+
+    mobileMenuContent.append(propertiesLink, createLink, bookingsLink, emailSpan, logoutButton);
+  } else {
+    const loginLink = el("a", "mobile-menu-link", "Log in") as HTMLAnchorElement;
+    loginLink.href = "#/login";
+    loginLink.addEventListener("click", closeMenu);
+
+    const registerLink = el("a", "mobile-menu-link", "Register") as HTMLAnchorElement;
+    registerLink.href = "#/register";
+    registerLink.addEventListener("click", closeMenu);
+
+    mobileMenuContent.append(propertiesLink, loginLink, registerLink);
+  }
+}
+
+// Close menu on Escape key.
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && menuOpen) {
+    closeMenu();
+  }
+});
 
 // --- Finder panel (search/filter) ----------------------------------------------
 
@@ -319,6 +406,7 @@ async function handleAuthSubmit(
     if (isLogin) {
       await login(email, password);
       renderNav();
+      renderMobileMenu();
       // Navigate to the list after login.
       window.location.hash = "#/properties";
     } else {
@@ -349,6 +437,7 @@ async function handleAuthSubmit(
 async function handleLogout(): Promise<void> {
   await logout();
   renderNav();
+  renderMobileMenu();
   // Navigate to the list after logout.
   window.location.hash = "#/properties";
 }
@@ -409,8 +498,16 @@ async function init(): Promise<void> {
     finderToggle.addEventListener("click", toggleFinder);
   }
 
+  // Wire up the menu toggle button.
+  if (menuToggle) {
+    menuToggle.addEventListener("click", toggleMenu);
+  }
+
   // Render the finder panel with the search callback.
   renderFinderPanel(searchProperties);
+
+  // Render the mobile menu.
+  renderMobileMenu();
 
   // If we have a session, verify it is still valid (and refresh if needed).
   if (getSession()) {

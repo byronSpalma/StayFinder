@@ -17,11 +17,18 @@
       <a href="#/properties" class="logo">StayFinder<span class="logo-dot">.</span></a>
       <nav id="nav" class="pill-nav" aria-label="Main navigation"></nav>
       <div id="user-nav" class="user-nav"></div>
-      <button id="finder-toggle" class="finder-toggle" type="button" aria-expanded="false" aria-controls="finder-panel">
-        <span class="finder-icon" aria-hidden="true">↓</span>
-        <span class="finder-label">Finder</span>
-      </button>
+      <div class="mobile-actions">
+        <button id="finder-toggle" class="finder-toggle" type="button" aria-expanded="false" aria-controls="finder-panel" aria-label="Open search">
+          <span class="finder-icon" aria-hidden="true">⌕</span>
+        </button>
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+          <span class="menu-icon" aria-hidden="true">☰</span>
+        </button>
+      </div>
     </header>
+    <div id="mobile-menu" class="mobile-menu" hidden>
+      <nav class="mobile-menu-content" aria-label="Mobile navigation"></nav>
+    </div>
     <div id="finder-panel" class="finder-panel" hidden>
       <div class="finder-content" id="finder-content"></div>
     </div>

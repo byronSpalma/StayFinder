@@ -135,11 +135,17 @@ button {
   background: var(--color-slate);
 }
 
-/* User links: to the right of the pill nav. */
+/* User links: to the right of the pill nav, hidden on small screens. */
 .user-nav {
-  display: flex;
+  display: none;
   gap: 0.75rem;
   align-items: center;
+}
+
+@media (min-width: 40rem) {
+  .user-nav {
+    display: flex;
+  }
 }
 
 .user-link {
@@ -162,12 +168,24 @@ button {
   color: var(--color-slate);
 }
 
+/* Mobile actions: search and menu buttons, only visible on small screens. */
+.mobile-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (min-width: 40rem) {
+  .mobile-actions {
+    display: none;
+  }
+}
+
 /* Finder toggle button: round, only visible on small screens. */
 .finder-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 9999px;
@@ -175,33 +193,85 @@ button {
   color: var(--color-cream);
   border: none;
   cursor: pointer;
+  font-size: 1.25rem;
 }
 
 .finder-toggle:hover {
   background: var(--color-ink);
 }
 
-@media (min-width: 40rem) {
-  .finder-toggle {
-    display: none;
-  }
+/* Menu toggle button: round, only visible on small screens. */
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
 }
 
-.finder-icon {
-  display: inline-block;
-  transition: transform 500ms;
+.menu-toggle:hover {
+  background: var(--color-ink);
 }
 
-.finder-toggle.open .finder-icon {
-  transform: rotate(180deg);
+/* Mobile menu: panel with all links. */
+.mobile-menu {
+  position: fixed;
+  top: 6rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgb(255 245 217 / 98%);
+  backdrop-filter: blur(8px);
+  z-index: 20;
+  padding: 2rem 1.25rem;
+  overflow-y: auto;
 }
 
-.finder-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+.mobile-menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
+.mobile-menu-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-ink);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.mobile-menu-link:hover {
+  background: var(--color-mist);
+}
+
+.mobile-menu-email {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-slate);
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Finder panel: the search/filter form. */
@@ -224,7 +294,7 @@ button {
 }
 
 .finder-panel.open {
-  max-height: 30rem;
+  max-height: 40rem;
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -275,7 +345,7 @@ button {
   border: none;
   background: transparent;
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--color-ink);
   padding: 0;
   width: 100%;
@@ -300,6 +370,13 @@ button {
   border: none;
   cursor: pointer;
   align-self: end;
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .finder-submit {
+    width: auto;
+  }
 }
 
 .finder-submit:hover {
@@ -332,7 +409,7 @@ button {
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: 3rem;
+  font-size: clamp(2.25rem, 9vw, 3rem);
   line-height: 0.95;
   letter-spacing: -0.02em;
   max-width: 48rem;
@@ -364,19 +441,20 @@ button {
   font-size: 0.875rem;
   line-height: 1.5rem;
   color: var(--color-slate);
-  margin: 0;
+  margin: 1rem 0 0;
 }
 
 @media (min-width: 40rem) {
   .hero-text {
     text-align: right;
+    margin: 0;
   }
 }
 
 /* Property list: auto-fill grid with rounded cards. */
 .property-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 0.75rem;
   max-width: 96rem;
   margin: 0 auto;
@@ -386,6 +464,7 @@ button {
 @media (min-width: 40rem) {
   .property-list {
     padding: 0 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   }
 }
 
@@ -399,13 +478,19 @@ button {
 .property-card {
   position: relative;
   display: block;
-  min-height: 16rem;
+  min-height: 12rem;
   border-radius: 1.75rem;
   background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-slate) 100%);
   overflow: hidden;
   color: white;
   text-decoration: none;
   transition: transform 700ms;
+}
+
+@media (min-width: 40rem) {
+  .property-card {
+    min-height: 16rem;
+  }
 }
 
 .property-card:hover {
@@ -616,7 +701,7 @@ button {
   border-radius: 1rem;
   background: white;
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--color-ink);
   padding: 0.75rem 1rem;
   transition: border-color 200ms, background 200ms;
@@ -645,7 +730,7 @@ button {
 .btn {
   display: inline-block;
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   padding: 0.625rem 1.5rem;
   border-radius: 9999px;
@@ -654,6 +739,7 @@ button {
   text-decoration: none;
   text-align: center;
   transition: background 200ms, color 200ms;
+  min-height: 44px;
 }
 
 .btn:disabled {
@@ -787,6 +873,16 @@ button {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid rgb(24 34 65 / 10%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 40rem) {
+  .booking-card .property-actions {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
 }
 
 /* --- Base styles (from stage 1) --- */
@@ -794,6 +890,7 @@ button {
 main {
   margin: 0;
   padding: 0;
+  min-height: calc(100vh - 6rem);
 }
 
 .auth-form {
