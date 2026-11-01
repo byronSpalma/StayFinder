@@ -70,8 +70,22 @@ function fetchProperty(id: string): Promise<Property> {
 export function renderPropertyList(container: HTMLElement): void {
   container.textContent = "";
 
+  // Hero section
+  const hero = el("section", "hero");
+  const heroTitle = el("h1", "hero-title");
+  heroTitle.append(
+    el("span", "hero-line", "Find somewhere"),
+    el("span", "hero-line hero-line-slate", "worth staying.")
+  );
+  const heroText = el(
+    "p",
+    "hero-text",
+    "Discover unique places to stay, from cozy studios to countryside cabins."
+  );
+  hero.append(heroTitle, heroText);
+
   const listContainer = el("div", "property-list");
-  container.append(el("h2", undefined, "Properties"), listContainer);
+  container.append(hero, listContainer);
   renderFlash(container);
 
   // The filter form lives in the finder panel (rendered by main.ts).
@@ -108,11 +122,16 @@ async function loadList(container: HTMLElement, query: PropertyQuery): Promise<v
 function buildPropertyCard(property: Property): HTMLElement {
   const link = el("a", "property-card") as HTMLAnchorElement;
   link.href = `#/properties/${encodeURIComponent(property.property_id)}`;
-  link.append(
-    el("h3", undefined, property.title),
-    el("p", "property-location", property.location),
-    el("p", undefined, `${property.price_per_night} kr / night · up to ${property.max_guests} guests`)
+
+  // Card content: location (small uppercase), title (display), price/guests (small)
+  const content = el("div", "property-card-content");
+  content.append(
+    el("p", "property-card-location", property.location),
+    el("h3", "property-card-title", property.title),
+    el("p", "property-card-meta", `${property.price_per_night} kr / night · up to ${property.max_guests} guests`)
   );
+
+  link.append(content);
   return link;
 }
 
