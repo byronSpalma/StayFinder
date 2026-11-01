@@ -11,6 +11,7 @@ import {
   renderPropertyEdit,
   renderPropertyList,
 } from "./properties.js";
+import { renderBookingEdit, renderBookingList } from "./bookings.js";
 import type { MeResponse, RegisterResponse, Session } from "./types.js";
 
 // --- Small DOM helpers -------------------------------------------------------
@@ -99,9 +100,12 @@ function renderNav(): void {
   if (session) {
     const createLink = el("a", "nav-link", "Create property") as HTMLAnchorElement;
     createLink.href = "#/properties/new";
+    const bookingsLink = el("a", "nav-link", "My bookings") as HTMLAnchorElement;
+    bookingsLink.href = "#/bookings";
     nav.append(
       homeLink,
       createLink,
+      bookingsLink,
       el("span", "nav-user", session.user.email),
       Object.assign(el("button", "nav-link", "Log out"), {
         type: "button",
@@ -249,6 +253,18 @@ function route(): void {
     }
   } else if (current.name === "login") {
     renderAuth("login");
+  } else if (current.name === "bookings") {
+    if (!getSession()) {
+      renderAuth("login", "You need to log in to see your bookings.");
+    } else {
+      renderBookingList(app);
+    }
+  } else if (current.name === "booking-edit") {
+    if (!getSession()) {
+      renderAuth("login", "You need to log in to edit a booking.");
+    } else {
+      renderBookingEdit(app, current.id);
+    }
   } else {
     renderNotFound(app);
   }
