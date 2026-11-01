@@ -63,7 +63,7 @@ export function renderPropertyForm(
     onclick: onCancel,
   });
 
-  form.append(submit, cancel, messages);
+  form.append(messages, submit, cancel);
   formContainer.append(form);
   container.append(formContainer);
 

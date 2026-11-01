@@ -591,11 +591,11 @@ button {
   text-align: center;
 }
 
-/* Form fields: same style as finder fields. */
+/* Form fields: label above, input below, always visible. */
 .form-field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-field label {
@@ -604,21 +604,22 @@ button {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-ink);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-field input,
 .form-field textarea,
 .form-field select {
-  border: none;
-  background: transparent;
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid rgb(24 34 65 / 25%);
+  border-radius: 1rem;
+  background: white;
   font: inherit;
   font-size: 0.875rem;
   color: var(--color-ink);
-  padding: 0.65rem 1.1rem;
-  border-radius: 1.35rem;
-  background: rgb(255 255 255 / 50%);
-  transition: background 200ms;
+  padding: 0.75rem 1rem;
+  transition: border-color 200ms, background 200ms;
 }
 
 .form-field input::placeholder,
@@ -629,9 +630,10 @@ button {
 .form-field input:focus,
 .form-field textarea:focus,
 .form-field select:focus {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
-  background: rgb(255 255 255 / 75%);
+  outline: none;
+  border-color: var(--color-ink);
+  border-width: 2px;
+  background: white;
 }
 
 .form-field textarea {
@@ -639,7 +641,7 @@ button {
   min-height: 6rem;
 }
 
-/* Buttons: primary pill in ink, secondary with border, destructive different. */
+/* Buttons: primary full-width pill, secondary text link. */
 .btn {
   display: inline-block;
   font: inherit;
@@ -662,6 +664,8 @@ button {
 .btn-primary {
   background: var(--color-ink);
   color: var(--color-cream);
+  width: 100%;
+  min-height: 3rem;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -671,11 +675,16 @@ button {
 .btn-secondary {
   background: transparent;
   color: var(--color-ink);
-  border: 1px solid var(--color-ink);
+  border: none;
+  text-decoration: underline;
+  padding: 0.5rem;
+  display: block;
+  margin: 1rem auto 0;
+  width: fit-content;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-mist);
+  color: var(--color-slate);
 }
 
 .btn-danger {
@@ -688,9 +697,13 @@ button {
   background: #fee;
 }
 
-/* Messages: error and info boxes. */
+/* Messages: error and info boxes, at the top of the form. */
+.messages {
+  margin-bottom: 1.5rem;
+}
+
 .message {
-  margin: 0 0 1rem;
+  margin: 0 0 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   font-size: 0.875rem;

@@ -92,7 +92,7 @@ export function renderBookingForm(
   const submit = Object.assign(el("button", "btn btn-primary", "Book"), { type: "submit" });
   submit.dataset.label = "Book";
 
-  form.append(submit, messages, summary);
+  form.append(messages, submit, summary);
   container.append(form);
 
   // Update the price preview whenever the dates change.

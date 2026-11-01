@@ -187,13 +187,13 @@ async function loadBookingForEdit(container: HTMLElement, id: string): Promise<v
     const emailInput = textField(form, "Your email", booking.guest_email);
     emailInput.type = "email";
 
-    const submit = Object.assign(el("button", undefined, "Save changes"), { type: "submit" });
+    const submit = Object.assign(el("button", "btn btn-primary", "Save changes"), { type: "submit" });
     submit.dataset.label = "Save changes";
 
-    const cancelLink = el("a", "nav-link", "Cancel") as HTMLAnchorElement;
+    const cancelLink = el("a", "btn btn-secondary", "Cancel") as HTMLAnchorElement;
     cancelLink.href = "#/bookings";
 
-    form.append(submit, cancelLink, messages, summary);
+    form.append(messages, submit, cancelLink, summary);
     container.append(form);
 
     const updateSummary = () => {

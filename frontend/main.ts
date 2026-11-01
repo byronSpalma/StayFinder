@@ -295,7 +295,7 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
   const switchLink = el("a", "btn btn-secondary", isLogin ? "Need an account? Register" : "Already have an account? Log in") as HTMLAnchorElement;
   switchLink.href = isLogin ? "#/register" : "#/login";
 
-  form.append(emailField, passwordField, submit, messages, switchLink);
+  form.append(messages, emailField, passwordField, submit, switchLink);
   container.append(title, form);
   app.append(container);
 
