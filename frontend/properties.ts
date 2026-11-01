@@ -321,24 +321,79 @@ function renderBookingConfirmation(
   const nights = nightsBetween(booking.check_in, booking.check_out);
   const total = nights !== null ? nights * property.price_per_night : null;
 
-  const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
-  backLink.href = "#/properties";
+  const page = el("div", "page-container");
+  const panel = el("div", "confirmation-panel");
 
-  const bookingsLink = el("a", "button-link", "My bookings") as HTMLAnchorElement;
-  bookingsLink.href = "#/bookings";
+  // Decorative check circle
+  const checkCircle = el("div", "confirmation-check");
+  checkCircle.setAttribute("aria-hidden", "true");
+  checkCircle.textContent = "✓";
+  panel.append(checkCircle);
 
-  container.append(
-    el("h2", undefined, "Booking confirmed!"),
-    el("p", undefined, `Booking ID: ${booking.booking_id}`),
-    el("p", undefined, `Property: ${property.title}`),
-    el("p", undefined, `Check-in: ${booking.check_in}`),
-    el("p", undefined, `Check-out: ${booking.check_out}`),
-    el("p", undefined, `Guests: ${booking.guests}`),
-    el("p", undefined, `Status: ${booking.status}`),
-    el("p", undefined, total !== null ? `Total: ${total} kr (${nights} nights)` : ""),
-    backLink,
-    bookingsLink
+  // Heading (gets focus so screen readers announce the confirmation)
+  const heading = el("h1", "confirmation-title", "Booking received");
+  heading.tabIndex = -1;
+  panel.append(heading);
+
+  panel.append(
+    el("p", "confirmation-subtitle", "We've saved your booking. You can review or change it under Bookings.")
   );
+
+  // Summary grid
+  const summary = el("div", "confirmation-summary");
+  summary.append(
+    confirmationItem("Property", property.title, true),
+    confirmationItem("Check-in", booking.check_in),
+    confirmationItem("Check-out", booking.check_out),
+    confirmationItem("Guests", String(booking.guests)),
+    confirmationItem("Nights", nights !== null ? String(nights) : "–"),
+    confirmationItem("Booking ID", booking.booking_id)
+  );
+
+  // Status pill
+  const statusItem = el("div", "confirmation-item");
+  const statusLabel = el("span", "confirmation-label", "Status");
+  const statusPill = el("span", `booking-status ${booking.status}`);
+  const statusIcon = booking.status === "confirmed" ? "✓ " : booking.status === "cancelled" ? "✕ " : "• ";
+  statusPill.textContent = statusIcon + booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+  statusItem.append(statusLabel, statusPill);
+  summary.append(statusItem);
+
+  panel.append(summary);
+
+  // Total
+  if (total !== null) {
+    const totalRow = el("div", "confirmation-total");
+    totalRow.append(
+      el("span", "confirmation-total-label", "Total"),
+      el("span", "confirmation-total-value", `${total} kr`)
+    );
+    panel.append(totalRow);
+  }
+
+  // Actions
+  const actions = el("div", "confirmation-actions");
+  const bookingsLink = el("a", "btn btn-primary", "My bookings") as HTMLAnchorElement;
+  bookingsLink.href = "#/bookings";
+  const backLink = el("a", "btn btn-outline", "Back to all properties") as HTMLAnchorElement;
+  backLink.href = "#/properties";
+  actions.append(bookingsLink, backLink);
+  panel.append(actions);
+
+  page.append(panel);
+  container.append(page);
+
+  // Move focus to the heading so screen readers announce the confirmation.
+  heading.focus();
+}
+
+function confirmationItem(label: string, value: string, fullWidth = false): HTMLElement {
+  const item = el("div", fullWidth ? "confirmation-item full-width" : "confirmation-item");
+  item.append(
+    el("span", "confirmation-label", label),
+    el("span", "confirmation-value", value)
+  );
+  return item;
 }
 
 // --- Not found -----------------------------------------------------------------

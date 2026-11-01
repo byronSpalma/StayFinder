@@ -1099,6 +1099,122 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   margin-bottom: 1.5rem;
 }
 
+/* --- Booking confirmation (Figma stage 5) --- */
+
+.confirmation-panel {
+  max-width: 36rem;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 1.75rem;
+  background: white;
+  border: 1px solid rgb(24 34 65 / 10%);
+  box-shadow: var(--shadow-panel);
+  text-align: center;
+}
+
+.confirmation-check {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.confirmation-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+  outline: none;
+}
+
+.confirmation-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-slate);
+  margin: 0 0 1.5rem;
+}
+
+.confirmation-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.confirmation-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.confirmation-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  margin-bottom: 0.25rem;
+}
+
+.confirmation-value {
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+
+.confirmation-item.full-width .confirmation-value {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.confirmation-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(24 34 65 / 10%);
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-total-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.confirmation-total-value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-ink);
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(24 34 65 / 10%);
+}
+
+@media (max-width: 30rem) {
+  .confirmation-actions {
+    flex-direction: column;
+  }
+  .confirmation-actions .btn {
+    width: 100%;
+  }
+}
+
 /* --- Base styles (from stage 1) --- */
 
 main {
