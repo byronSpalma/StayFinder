@@ -82,3 +82,64 @@ main {
   background: #efe;
   color: #060;
 }
+
+/* --- Property list and detail (F2) --- */
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-form input,
+.filter-form select {
+  font: inherit;
+  padding: 0.4rem;
+}
+
+.filter-form button {
+  font: inherit;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+}
+
+.property-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.property-card {
+  display: block;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.property-card:hover {
+  border-color: #06c;
+}
+
+.property-card h3 {
+  margin: 0 0 0.25rem;
+}
+
+.property-card p {
+  margin: 0.25rem 0;
+}
+
+.property-location {
+  color: #555;
+}
+
+.back-link {
+  color: #06c;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.state {
+  color: #555;
+}

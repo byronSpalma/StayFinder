@@ -3,6 +3,12 @@
 
 import { apiFetch, ApiError } from "./api.js";
 import { clearSession, getSession, loadSession, saveSession } from "./session.js";
+import { parseHash, startRouter } from "./router.js";
+import {
+  renderNotFound,
+  renderPropertyDetail,
+  renderPropertyList,
+} from "./properties.js";
 import type { MeResponse, RegisterResponse, Session } from "./types.js";
 
 // --- Small DOM helpers -------------------------------------------------------
@@ -84,9 +90,13 @@ function renderNav(): void {
   }
   nav.textContent = "";
 
+  const homeLink = el("a", "nav-link", "Properties") as HTMLAnchorElement;
+  homeLink.href = "#/properties";
+
   const session = getSession();
   if (session) {
     nav.append(
+      homeLink,
       el("span", "nav-user", session.user.email),
       Object.assign(el("button", "nav-link", "Log out"), {
         type: "button",
@@ -95,6 +105,7 @@ function renderNav(): void {
     );
   } else {
     nav.append(
+      homeLink,
       Object.assign(el("button", "nav-link", "Log in"), {
         type: "button",
         onclick: () => renderAuth("login"),
@@ -105,23 +116,6 @@ function renderNav(): void {
       })
     );
   }
-}
-
-function renderHome(): void {
-  if (!app) {
-    return;
-  }
-  app.textContent = "";
-  const session = getSession();
-  app.append(
-    el(
-      "p",
-      undefined,
-      session
-        ? `Welcome back, ${session.user.email}!`
-        : "Find your next stay. Log in or register to make a booking."
-    )
-  );
 }
 
 function renderAuth(mode: "login" | "register"): void {
@@ -187,7 +181,7 @@ async function handleAuthSubmit(
     if (isLogin) {
       await login(email, password);
       renderNav();
-      renderHome();
+      route();
     } else {
       const result = await register(email, password);
       if (result.email_confirmation_required) {
@@ -216,15 +210,30 @@ async function handleAuthSubmit(
 async function handleLogout(): Promise<void> {
   await logout();
   renderNav();
-  renderHome();
+  route();
 }
 
 // --- Startup -----------------------------------------------------------------
 
+// Renders the view matching the current hash.
+function route(): void {
+  if (!app) {
+    return;
+  }
+  const current = parseHash(window.location.hash);
+  if (current.name === "list") {
+    renderPropertyList(app);
+  } else if (current.name === "detail") {
+    renderPropertyDetail(app, current.id);
+  } else {
+    renderNotFound(app);
+  }
+}
+
 async function init(): Promise<void> {
   loadSession();
   renderNav();
-  renderHome();
+  startRouter(route);
 
   // If we have a session, verify it is still valid (and refresh if needed).
   if (getSession()) {
@@ -233,7 +242,6 @@ async function init(): Promise<void> {
     } catch {
       // apiFetch already cleared the session if the refresh failed.
       renderNav();
-      renderHome();
     }
   }
 }
