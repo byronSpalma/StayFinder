@@ -69,6 +69,23 @@ const escapeLike = (text: string) => text.replace(/[\\%_]/g, "\\$&");
 
 export const properties = new Hono<{ Variables: AuthVariables }>();
 
+// GET /properties/mine must be registered BEFORE GET /:id, otherwise "mine"
+// would be interpreted as a property id.
+properties.get("/mine", requireAuth, async (c) => {
+  const userId = c.get("user").id;
+
+  const { data, error } = await c.get("db")
+    .from("properties")
+    .select("*")
+    .eq("owner_id", userId);
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  return c.json(data as Property[]);
+});
+
 // Reading is open to everyone, so these use the shared client.
 properties.get("/", listQueryValidator, async (c) => {
   const { location, max_price, guests, sort } = c.req.valid("query");
