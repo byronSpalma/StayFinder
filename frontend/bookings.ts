@@ -22,16 +22,20 @@ function el<K extends keyof HTMLElementTagNameMap>(
 
 function showLoading(container: HTMLElement, what: string): void {
   container.textContent = "";
-  container.append(el("p", "state", `Loading ${what}…`));
+  const wrapper = el("div", "page-container");
+  wrapper.append(el("p", "state", `Loading ${what}…`));
+  container.append(wrapper);
 }
 
 function showError(container: HTMLElement, message: string, retry: () => void): void {
   container.textContent = "";
-  const retryButton = Object.assign(el("button", undefined, "Try again"), {
+  const wrapper = el("div", "page-container");
+  const retryButton = Object.assign(el("button", "btn btn-primary", "Try again"), {
     type: "button",
     onclick: retry,
   });
-  container.append(el("p", "message error", message), retryButton);
+  wrapper.append(el("p", "message error", message), retryButton);
+  container.append(wrapper);
 }
 
 // --- List view -----------------------------------------------------------------
@@ -54,15 +58,27 @@ async function loadBookings(container: HTMLElement): Promise<void> {
     const propertyById = new Map(properties.map((p) => [p.property_id, p]));
 
     container.textContent = "";
-    container.append(el("h2", undefined, "My bookings"));
+
+    const page = el("div", "page-container");
+
+    // Page header
+    const header = el("div", "page-header");
+    header.append(
+      el("h1", "page-title", "My bookings"),
+      el("p", "page-subtitle", `Your upcoming and past stays · ${bookings.length} booking${bookings.length === 1 ? "" : "s"}`)
+    );
+    page.append(header);
 
     if (bookings.length === 0) {
-      const link = el("a", "button-link", "Browse properties") as HTMLAnchorElement;
+      const emptyCard = el("div", "empty-state");
+      const link = el("a", "btn btn-primary", "Browse properties") as HTMLAnchorElement;
       link.href = "#/properties";
-      container.append(
-        el("p", "state", "You have no bookings yet."),
+      emptyCard.append(
+        el("p", "state", "You have no bookings yet. Find your next stay!"),
         link
       );
+      page.append(emptyCard);
+      container.append(page);
       return;
     }
 
@@ -70,7 +86,8 @@ async function loadBookings(container: HTMLElement): Promise<void> {
     for (const booking of bookings) {
       list.append(buildBookingCard(booking, propertyById.get(booking.property_id), container));
     }
-    container.append(list);
+    page.append(list);
+    container.append(page);
   } catch (error) {
     const message = error instanceof ApiError ? error.message : "Could not load your bookings.";
     showError(container, message, () => void loadBookings(container));
@@ -82,38 +99,69 @@ function buildBookingCard(
   property: Property | undefined,
   listContainer: HTMLElement
 ): HTMLElement {
-  const card = el("div", "booking-card");
+  const isCancelled = booking.status === "cancelled";
+  const card = el("div", isCancelled ? "booking-card cancelled" : "booking-card");
 
-  const title = property ? property.title : `Unknown property (${booking.property_id})`;
   const nights = nightsBetween(booking.check_in, booking.check_out);
   const total = nights !== null && property ? nights * property.price_per_night : null;
 
-  const statusText = booking.status === "cancelled" ? "Cancelled" : booking.status;
-  const statusClass = `booking-status ${booking.status}`;
+  // Top row: location (left) and status pill (right)
+  const topRow = el("div", "booking-card-top");
+  if (property) {
+    topRow.append(el("span", "booking-card-location", property.location));
+  }
+  const statusPill = el("span", `booking-status ${booking.status}`);
+  const statusIcon = booking.status === "confirmed" ? "✓ " : booking.status === "cancelled" ? "✕ " : "• ";
+  statusPill.textContent = statusIcon + booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+  topRow.append(statusPill);
+  card.append(topRow);
 
-  card.append(
-    el("h3", undefined, title),
-    el("p", undefined, `Check-in: ${booking.check_in} · Check-out: ${booking.check_out}`),
-    el("p", undefined, `${nights !== null ? `${nights} night${nights === 1 ? "" : "s"}` : "–"} · ${booking.guests} guest${booking.guests === 1 ? "" : "s"}`),
-    el("p", undefined, total !== null ? `Total: ${total} kr` : ""),
-    el("span", statusClass, statusText)
+  // Title: link to the property detail page
+  const title = property ? property.title : `Unknown property (${booking.property_id})`;
+  if (property) {
+    const titleLink = el("a", "booking-card-title", title) as HTMLAnchorElement;
+    titleLink.href = `#/properties/${encodeURIComponent(property.property_id)}`;
+    card.append(titleLink);
+  } else {
+    card.append(el("h3", "booking-card-title", title));
+  }
+
+  // Details grid: check-in, check-out, nights, guests
+  const details = el("div", "booking-card-details");
+  details.append(
+    detailItem("Check-in", booking.check_in),
+    detailItem("Check-out", booking.check_out),
+    detailItem("Nights", nights !== null ? String(nights) : "–"),
+    detailItem("Guests", String(booking.guests))
   );
+  card.append(details);
 
-  const actions = el("div", "property-actions");
+  // Total
+  if (total !== null) {
+    const totalRow = el("div", "booking-card-total");
+    totalRow.append(
+      el("span", "booking-card-total-label", "Total"),
+      el("span", "booking-card-total-value", `${total} kr`)
+    );
+    card.append(totalRow);
+  }
 
-  const editLink = el("a", "btn btn-secondary", "Edit") as HTMLAnchorElement;
+  // Actions
+  const actions = el("div", "booking-card-actions");
+
+  const editLink = el("a", "btn btn-outline", "Edit") as HTMLAnchorElement;
   editLink.href = `#/bookings/${encodeURIComponent(booking.booking_id)}/edit`;
   actions.append(editLink);
 
-  if (booking.status !== "cancelled") {
-    const cancelButton = Object.assign(el("button", "btn btn-danger", "Cancel booking"), {
+  if (!isCancelled) {
+    const cancelButton = Object.assign(el("button", "btn btn-outline", "Cancel booking"), {
       type: "button",
       onclick: () => void handleCancel(booking, listContainer),
     });
     actions.append(cancelButton);
   }
 
-  const deleteButton = Object.assign(el("button", "btn btn-danger", "Delete"), {
+  const deleteButton = Object.assign(el("button", "btn btn-delete", "Delete"), {
     type: "button",
     onclick: () => void handleDelete(booking, listContainer),
   });
@@ -121,6 +169,15 @@ function buildBookingCard(
 
   card.append(actions);
   return card;
+}
+
+function detailItem(label: string, value: string): HTMLElement {
+  const item = el("div", "booking-card-detail");
+  item.append(
+    el("span", "booking-card-detail-label", label),
+    el("span", "booking-card-detail-value", value)
+  );
+  return item;
 }
 
 async function handleCancel(booking: Booking, listContainer: HTMLElement): Promise<void> {
