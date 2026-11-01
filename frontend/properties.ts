@@ -149,17 +149,27 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     const property = await fetchProperty(id);
     container.textContent = "";
 
+    const detailPage = el("div", "detail-page");
+
     const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
     backLink.href = "#/properties";
 
-    container.append(
-      backLink,
-      el("h2", undefined, property.title),
-      el("p", "property-location", property.location),
-      el("p", undefined, property.description),
-      el("p", undefined, `Price: ${property.price_per_night} kr per night`),
-      el("p", undefined, `Max guests: ${property.max_guests}`)
+    const header = el("div", "detail-header");
+    header.append(
+      el("h1", "detail-title", property.title),
+      el("p", "detail-location", property.location)
     );
+
+    const description = el("p", "detail-description", property.description);
+
+    const meta = el("div", "detail-meta");
+    meta.append(
+      metaItem("Price", `${property.price_per_night} kr per night`),
+      metaItem("Max guests", String(property.max_guests))
+    );
+
+    detailPage.append(backLink, header, description, meta);
+    container.append(detailPage);
     renderFlash(container);
 
     // Show Edit/Delete only when the logged-in user owns this property.
@@ -179,12 +189,12 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
       });
 
       actions.append(editLink, deleteButton);
-      container.append(actions);
+      detailPage.append(actions);
     }
 
     // Booking form (or a login prompt when logged out).
     const bookingContainer = el("div", "booking-section");
-    container.append(bookingContainer);
+    detailPage.append(bookingContainer);
     renderBookingForm(bookingContainer, property, (booking) => {
       renderBookingConfirmation(container, property, booking);
     });
@@ -203,6 +213,15 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     const message = error instanceof ApiError ? error.message : "Could not load the property.";
     showError(container, message, () => void loadDetail(container, id));
   }
+}
+
+function metaItem(label: string, value: string): HTMLElement {
+  const item = el("div", "detail-meta-item");
+  item.append(
+    el("span", "detail-meta-label", label),
+    el("span", "detail-meta-value", value)
+  );
+  return item;
 }
 
 // --- Create / edit / delete ----------------------------------------------------

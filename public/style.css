@@ -56,7 +56,8 @@ button {
 /* --- Header, pill navigation and finder panel (Figma stage 2) --- */
 
 .site-header {
-  position: relative;
+  max-width: 96rem;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -166,6 +167,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 9999px;
@@ -316,6 +318,9 @@ button {
 @media (min-width: 40rem) {
   .hero {
     padding: 0 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
   }
 }
 
@@ -331,7 +336,7 @@ button {
   line-height: 0.95;
   letter-spacing: -0.02em;
   max-width: 48rem;
-  margin: 0 0 1rem;
+  margin: 0;
 }
 
 @media (min-width: 40rem) {
@@ -365,7 +370,6 @@ button {
 @media (min-width: 40rem) {
   .hero-text {
     text-align: right;
-    margin-left: auto;
   }
 }
 
@@ -454,6 +458,111 @@ button {
 
 .property-card {
   animation: card-fade-in 650ms ease-out;
+}
+
+/* --- Detail page and booking form (Figma stage 4) --- */
+
+.detail-page {
+  max-width: 96rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+@media (min-width: 40rem) {
+  .detail-page {
+    padding: 0 2.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .detail-page {
+    padding: 0 3.5rem;
+  }
+}
+
+.detail-header {
+  margin-bottom: 2rem;
+}
+
+.detail-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+@media (min-width: 40rem) {
+  .detail-title {
+    font-size: 3rem;
+  }
+}
+
+.detail-location {
+  font-size: 0.875rem;
+  color: var(--color-slate);
+  margin: 0;
+}
+
+.detail-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-ink);
+  max-width: 48rem;
+  margin: 0 0 1.5rem;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.detail-meta-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-meta-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+  margin-bottom: 0.25rem;
+}
+
+.detail-meta-value {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+/* Booking form: rounded panel with mist background. */
+.booking-section {
+  max-width: 32rem;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border-radius: 1.75rem;
+  background: var(--color-mist);
+}
+
+.booking-section h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+}
+
+.booking-summary {
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--color-ink);
+  margin: 1rem 0 0;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgb(255 255 255 / 50%);
 }
 
 /* --- Base styles (from stage 1) --- */
