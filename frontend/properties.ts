@@ -70,70 +70,35 @@ function fetchProperty(id: string): Promise<Property> {
 export function renderPropertyList(container: HTMLElement): void {
   container.textContent = "";
 
+  // Hero section
+  const hero = el("section", "hero");
+  const heroTitle = el("h1", "hero-title");
+  heroTitle.append(
+    el("span", "hero-line", "Find somewhere"),
+    el("span", "hero-line hero-line-slate", "worth staying.")
+  );
+  const heroText = el(
+    "p",
+    "hero-text",
+    "Discover unique places to stay, from cozy studios to countryside cabins."
+  );
+  hero.append(heroTitle, heroText);
+
   const listContainer = el("div", "property-list");
-  const form = buildFilterForm((query) => void loadList(listContainer, query));
-  container.append(el("h2", undefined, "Properties"), form, listContainer);
+  container.append(hero, listContainer);
   renderFlash(container);
 
+  // The filter form lives in the finder panel (rendered by main.ts).
+  // We just need to load the list; the panel calls us back with the query.
   void loadList(listContainer, {});
 }
 
-function buildFilterForm(onSearch: (query: PropertyQuery) => void): HTMLFormElement {
-  const form = el("form", "filter-form") as HTMLFormElement;
-
-  const locationInput = Object.assign(el("input"), {
-    type: "text",
-    name: "location",
-    placeholder: "Location",
-  });
-
-  const maxPriceInput = Object.assign(el("input"), {
-    type: "number",
-    name: "max_price",
-    placeholder: "Max price",
-    min: "1",
-  });
-
-  const guestsInput = Object.assign(el("input"), {
-    type: "number",
-    name: "guests",
-    placeholder: "Guests",
-    min: "1",
-  });
-
-  const sortSelect = el("select") as HTMLSelectElement;
-  sortSelect.append(
-    Object.assign(el("option", undefined, "Sort by price"), { value: "" }),
-    Object.assign(el("option", undefined, "Price: low to high"), { value: "price_asc" }),
-    Object.assign(el("option", undefined, "Price: high to low"), { value: "price_desc" })
-  );
-
-  const submit = Object.assign(el("button", undefined, "Search"), { type: "submit" });
-
-  form.append(locationInput, maxPriceInput, guestsInput, sortSelect, submit);
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const query: PropertyQuery = {};
-    const location = locationInput.value.trim();
-    if (location) {
-      query.location = location;
-    }
-    const maxPrice = Number(maxPriceInput.value);
-    if (maxPriceInput.value !== "" && maxPrice > 0) {
-      query.max_price = maxPrice;
-    }
-    const guests = Number(guestsInput.value);
-    if (guestsInput.value !== "" && guests > 0) {
-      query.guests = guests;
-    }
-    if (sortSelect.value === "price_asc" || sortSelect.value === "price_desc") {
-      query.sort = sortSelect.value;
-    }
-    onSearch(query);
-  });
-
-  return form;
+// Called by main.ts when the finder panel is submitted.
+export function searchProperties(query: PropertyQuery): void {
+  const listContainer = document.querySelector<HTMLElement>(".property-list");
+  if (listContainer) {
+    void loadList(listContainer, query);
+  }
 }
 
 async function loadList(container: HTMLElement, query: PropertyQuery): Promise<void> {
@@ -157,11 +122,16 @@ async function loadList(container: HTMLElement, query: PropertyQuery): Promise<v
 function buildPropertyCard(property: Property): HTMLElement {
   const link = el("a", "property-card") as HTMLAnchorElement;
   link.href = `#/properties/${encodeURIComponent(property.property_id)}`;
-  link.append(
-    el("h3", undefined, property.title),
-    el("p", "property-location", property.location),
-    el("p", undefined, `${property.price_per_night} kr / night · up to ${property.max_guests} guests`)
+
+  // Card content: location (small uppercase), title (display), price/guests (small)
+  const content = el("div", "property-card-content");
+  content.append(
+    el("p", "property-card-location", property.location),
+    el("h3", "property-card-title", property.title),
+    el("p", "property-card-meta", `${property.price_per_night} kr / night · up to ${property.max_guests} guests`)
   );
+
+  link.append(content);
   return link;
 }
 
@@ -179,17 +149,27 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     const property = await fetchProperty(id);
     container.textContent = "";
 
+    const detailPage = el("div", "detail-page");
+
     const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
     backLink.href = "#/properties";
 
-    container.append(
-      backLink,
-      el("h2", undefined, property.title),
-      el("p", "property-location", property.location),
-      el("p", undefined, property.description),
-      el("p", undefined, `Price: ${property.price_per_night} kr per night`),
-      el("p", undefined, `Max guests: ${property.max_guests}`)
+    const header = el("div", "detail-header");
+    header.append(
+      el("h1", "detail-title", property.title),
+      el("p", "detail-location", property.location)
     );
+
+    const description = el("p", "detail-description", property.description);
+
+    const meta = el("div", "detail-meta");
+    meta.append(
+      metaItem("Price", `${property.price_per_night} kr per night`),
+      metaItem("Max guests", String(property.max_guests))
+    );
+
+    detailPage.append(backLink, header, description, meta);
+    container.append(detailPage);
     renderFlash(container);
 
     // Show Edit/Delete only when the logged-in user owns this property.
@@ -198,23 +178,23 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     // were shown by mistake.
     const session = getSession();
     if (session && session.user.id === property.owner_id) {
-      const actions = el("div", "property-actions");
+      const actions = el("div", "detail-actions");
 
-      const editLink = el("a", "button-link", "Edit") as HTMLAnchorElement;
+      const editLink = el("a", "btn btn-outline", "Edit") as HTMLAnchorElement;
       editLink.href = `#/properties/${encodeURIComponent(property.property_id)}/edit`;
 
-      const deleteButton = Object.assign(el("button", "danger", "Delete"), {
+      const deleteButton = Object.assign(el("button", "btn btn-delete", "Delete"), {
         type: "button",
         onclick: () => void handleDelete(container, property),
       });
 
       actions.append(editLink, deleteButton);
-      container.append(actions);
+      detailPage.append(actions);
     }
 
     // Booking form (or a login prompt when logged out).
     const bookingContainer = el("div", "booking-section");
-    container.append(bookingContainer);
+    detailPage.append(bookingContainer);
     renderBookingForm(bookingContainer, property, (booking) => {
       renderBookingConfirmation(container, property, booking);
     });
@@ -233,6 +213,15 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     const message = error instanceof ApiError ? error.message : "Could not load the property.";
     showError(container, message, () => void loadDetail(container, id));
   }
+}
+
+function metaItem(label: string, value: string): HTMLElement {
+  const item = el("div", "detail-meta-item");
+  item.append(
+    el("span", "detail-meta-label", label),
+    el("span", "detail-meta-value", value)
+  );
+  return item;
 }
 
 // --- Create / edit / delete ----------------------------------------------------
@@ -332,24 +321,79 @@ function renderBookingConfirmation(
   const nights = nightsBetween(booking.check_in, booking.check_out);
   const total = nights !== null ? nights * property.price_per_night : null;
 
-  const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
-  backLink.href = "#/properties";
+  const page = el("div", "page-container");
+  const panel = el("div", "confirmation-panel");
 
-  const bookingsLink = el("a", "button-link", "My bookings") as HTMLAnchorElement;
-  bookingsLink.href = "#/bookings";
+  // Decorative check circle
+  const checkCircle = el("div", "confirmation-check");
+  checkCircle.setAttribute("aria-hidden", "true");
+  checkCircle.textContent = "✓";
+  panel.append(checkCircle);
 
-  container.append(
-    el("h2", undefined, "Booking confirmed!"),
-    el("p", undefined, `Booking ID: ${booking.booking_id}`),
-    el("p", undefined, `Property: ${property.title}`),
-    el("p", undefined, `Check-in: ${booking.check_in}`),
-    el("p", undefined, `Check-out: ${booking.check_out}`),
-    el("p", undefined, `Guests: ${booking.guests}`),
-    el("p", undefined, `Status: ${booking.status}`),
-    el("p", undefined, total !== null ? `Total: ${total} kr (${nights} nights)` : ""),
-    backLink,
-    bookingsLink
+  // Heading (gets focus so screen readers announce the confirmation)
+  const heading = el("h1", "confirmation-title", "Booking received");
+  heading.tabIndex = -1;
+  panel.append(heading);
+
+  panel.append(
+    el("p", "confirmation-subtitle", "We've saved your booking. You can review or change it under Bookings.")
   );
+
+  // Summary grid
+  const summary = el("div", "confirmation-summary");
+  summary.append(
+    confirmationItem("Property", property.title, true),
+    confirmationItem("Check-in", booking.check_in),
+    confirmationItem("Check-out", booking.check_out),
+    confirmationItem("Guests", String(booking.guests)),
+    confirmationItem("Nights", nights !== null ? String(nights) : "–"),
+    confirmationItem("Booking ID", booking.booking_id)
+  );
+
+  // Status pill
+  const statusItem = el("div", "confirmation-item");
+  const statusLabel = el("span", "confirmation-label", "Status");
+  const statusPill = el("span", `booking-status ${booking.status}`);
+  const statusIcon = booking.status === "confirmed" ? "✓ " : booking.status === "cancelled" ? "✕ " : "• ";
+  statusPill.textContent = statusIcon + booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+  statusItem.append(statusLabel, statusPill);
+  summary.append(statusItem);
+
+  panel.append(summary);
+
+  // Total
+  if (total !== null) {
+    const totalRow = el("div", "confirmation-total");
+    totalRow.append(
+      el("span", "confirmation-total-label", "Total"),
+      el("span", "confirmation-total-value", `${total} kr`)
+    );
+    panel.append(totalRow);
+  }
+
+  // Actions
+  const actions = el("div", "confirmation-actions");
+  const bookingsLink = el("a", "btn btn-primary", "My bookings") as HTMLAnchorElement;
+  bookingsLink.href = "#/bookings";
+  const backLink = el("a", "btn btn-outline", "Back to all properties") as HTMLAnchorElement;
+  backLink.href = "#/properties";
+  actions.append(bookingsLink, backLink);
+  panel.append(actions);
+
+  page.append(panel);
+  container.append(page);
+
+  // Move focus to the heading so screen readers announce the confirmation.
+  heading.focus();
+}
+
+function confirmationItem(label: string, value: string, fullWidth = false): HTMLElement {
+  const item = el("div", fullWidth ? "confirmation-item full-width" : "confirmation-item");
+  item.append(
+    el("span", "confirmation-label", label),
+    el("span", "confirmation-value", value)
+  );
+  return item;
 }
 
 // --- Not found -----------------------------------------------------------------

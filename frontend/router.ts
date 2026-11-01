@@ -6,6 +6,7 @@ export type Route =
   | { name: "new" }
   | { name: "edit"; id: string }
   | { name: "login" }
+  | { name: "register" }
   | { name: "bookings" }
   | { name: "booking-edit"; id: string }
   | { name: "not-found" };
@@ -32,6 +33,9 @@ export function parseHash(hash: string): Route {
   }
   if (parts[0] === "login" && parts.length === 1) {
     return { name: "login" };
+  }
+  if (parts[0] === "register" && parts.length === 1) {
+    return { name: "register" };
   }
   if (parts[0] === "bookings" && parts.length === 1) {
     return { name: "bookings" };

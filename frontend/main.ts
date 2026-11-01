@@ -12,7 +12,8 @@ import {
   renderPropertyList,
 } from "./properties.js";
 import { renderBookingEdit, renderBookingList } from "./bookings.js";
-import type { MeResponse, RegisterResponse, Session } from "./types.js";
+import { searchProperties } from "./properties.js";
+import type { MeResponse, PropertyQuery, RegisterResponse, Session } from "./types.js";
 
 // --- Small DOM helpers -------------------------------------------------------
 
@@ -86,45 +87,278 @@ async function logout(): Promise<void> {
 
 const app = document.querySelector<HTMLElement>("#app");
 const nav = document.querySelector<HTMLElement>("#nav");
+const userNav = document.querySelector<HTMLElement>("#user-nav");
+const finderToggle = document.querySelector<HTMLButtonElement>("#finder-toggle");
+const finderPanel = document.querySelector<HTMLElement>("#finder-panel");
+const finderContent = document.querySelector<HTMLElement>("#finder-content");
+const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle");
+const mobileMenu = document.querySelector<HTMLElement>("#mobile-menu");
+const mobileMenuContent = document.querySelector<HTMLElement>(".mobile-menu-content");
 
-function renderNav(): void {
+// --- Mobile menu ---------------------------------------------------------------
+
+let menuOpen = false;
+
+function toggleMenu(): void {
+  menuOpen = !menuOpen;
+  if (mobileMenu) {
+    mobileMenu.hidden = !menuOpen;
+    mobileMenu.classList.toggle("open", menuOpen);
+  }
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", String(menuOpen));
+    menuToggle.classList.toggle("open", menuOpen);
+  }
+}
+
+function closeMenu(): void {
+  if (!menuOpen) {
+    return;
+  }
+  menuOpen = false;
+  if (mobileMenu) {
+    mobileMenu.hidden = true;
+    mobileMenu.classList.remove("open");
+  }
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.classList.remove("open");
+  }
+}
+
+// Renders the mobile menu with all links.
+function renderMobileMenu(): void {
+  if (!mobileMenuContent) {
+    return;
+  }
+  mobileMenuContent.textContent = "";
+
+  const session = getSession();
+
+  const propertiesLink = el("a", "mobile-menu-link", "Properties") as HTMLAnchorElement;
+  propertiesLink.href = "#/properties";
+  propertiesLink.addEventListener("click", closeMenu);
+
+  if (session) {
+    const hostLink = el("a", "mobile-menu-link", "Host") as HTMLAnchorElement;
+    hostLink.href = "#/properties/new";
+    hostLink.addEventListener("click", closeMenu);
+
+    const bookingsLink = el("a", "mobile-menu-link", "Bookings") as HTMLAnchorElement;
+    bookingsLink.href = "#/bookings";
+    bookingsLink.addEventListener("click", closeMenu);
+
+    const emailSpan = el("span", "mobile-menu-email", session.user.email);
+
+    const logoutButton = Object.assign(el("button", "mobile-menu-link", "Log out"), {
+      type: "button",
+      onclick: () => {
+        closeMenu();
+        void handleLogout();
+      },
+    });
+
+    mobileMenuContent.append(propertiesLink, hostLink, bookingsLink, emailSpan, logoutButton);
+  } else {
+    const loginLink = el("a", "mobile-menu-link", "Log in") as HTMLAnchorElement;
+    loginLink.href = "#/login";
+    loginLink.addEventListener("click", closeMenu);
+
+    const registerLink = el("a", "mobile-menu-link", "Register") as HTMLAnchorElement;
+    registerLink.href = "#/register";
+    registerLink.addEventListener("click", closeMenu);
+
+    mobileMenuContent.append(propertiesLink, loginLink, registerLink);
+  }
+}
+
+// Close menu on Escape key.
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && menuOpen) {
+    closeMenu();
+  }
+});
+
+// --- Finder panel (search/filter) ----------------------------------------------
+
+let finderOpen = false;
+
+function toggleFinder(): void {
+  finderOpen = !finderOpen;
+  if (finderPanel) {
+    finderPanel.hidden = !finderOpen;
+    finderPanel.classList.toggle("open", finderOpen);
+  }
+  if (finderToggle) {
+    finderToggle.setAttribute("aria-expanded", String(finderOpen));
+    finderToggle.classList.toggle("open", finderOpen);
+  }
+}
+
+function closeFinder(): void {
+  if (!finderOpen) {
+    return;
+  }
+  finderOpen = false;
+  if (finderPanel) {
+    finderPanel.hidden = true;
+    finderPanel.classList.remove("open");
+  }
+  if (finderToggle) {
+    finderToggle.setAttribute("aria-expanded", "false");
+    finderToggle.classList.remove("open");
+  }
+}
+
+// Renders the filter form inside the finder panel.
+function renderFinderPanel(onSearch: (query: PropertyQuery) => void): void {
+  if (!finderContent) {
+    return;
+  }
+  finderContent.textContent = "";
+
+  const form = el("form", "finder-form") as HTMLFormElement;
+
+  const whereField = el("div", "finder-field");
+  const whereLabel = el("label", undefined, "Where");
+  const whereInput = Object.assign(el("input"), {
+    type: "text",
+    name: "location",
+    placeholder: "Search destinations",
+  });
+  whereLabel.append(whereInput);
+  whereField.append(whereLabel);
+
+  const whoField = el("div", "finder-field");
+  const whoLabel = el("label", undefined, "Who");
+  const whoInput = Object.assign(el("input"), {
+    type: "number",
+    name: "guests",
+    placeholder: "Add guests",
+    min: "1",
+  });
+  whoLabel.append(whoInput);
+  whoField.append(whoLabel);
+
+  const priceField = el("div", "finder-field");
+  const priceLabel = el("label", undefined, "Max price");
+  const priceInput = Object.assign(el("input"), {
+    type: "number",
+    name: "max_price",
+    placeholder: "Max price",
+    min: "1",
+  });
+  priceLabel.append(priceInput);
+  priceField.append(priceLabel);
+
+  const sortField = el("div", "finder-field");
+  const sortLabel = el("label", undefined, "Sort");
+  const sortSelect = el("select") as HTMLSelectElement;
+  sortSelect.append(
+    Object.assign(el("option", undefined, "Default"), { value: "" }),
+    Object.assign(el("option", undefined, "Price: low to high"), { value: "price_asc" }),
+    Object.assign(el("option", undefined, "Price: high to low"), { value: "price_desc" })
+  );
+  sortLabel.append(sortSelect);
+  sortField.append(sortLabel);
+
+  const submit = Object.assign(el("button", "finder-submit", "Search"), { type: "submit" });
+
+  form.append(whereField, whoField, priceField, sortField, submit);
+  finderContent.append(form);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const query: PropertyQuery = {};
+    const location = whereInput.value.trim();
+    if (location) {
+      query.location = location;
+    }
+    const guests = Number(whoInput.value);
+    if (whoInput.value !== "" && guests > 0) {
+      query.guests = guests;
+    }
+    const maxPrice = Number(priceInput.value);
+    if (priceInput.value !== "" && maxPrice > 0) {
+      query.max_price = maxPrice;
+    }
+    if (sortSelect.value === "price_asc" || sortSelect.value === "price_desc") {
+      query.sort = sortSelect.value;
+    }
+    onSearch(query);
+    closeFinder();
+  });
+}
+
+// --- Navigation ----------------------------------------------------------------
+
+// Marks Host and Bookings with aria-current="page" when on their routes.
+// Main and Stays both point to the list route, so they are never marked.
+function markCurrentRoute(): void {
   if (!nav) {
     return;
   }
-  nav.textContent = "";
+  const hash = window.location.hash || "#/properties";
+  const links = nav.querySelectorAll<HTMLAnchorElement>(".pill-link[href]");
+  for (const link of links) {
+    // Only Host (#/properties/new) and Bookings (#/bookings) can be current.
+    const isCurrent =
+      (link.hash === "#/properties/new" || link.hash === "#/bookings") && link.hash === hash;
+    link.classList.toggle("current", isCurrent);
+    if (isCurrent) {
+      link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  }
+}
 
-  const homeLink = el("a", "nav-link", "Properties") as HTMLAnchorElement;
-  homeLink.href = "#/properties";
+function renderNav(): void {
+  if (!nav || !userNav) {
+    return;
+  }
+  nav.textContent = "";
+  userNav.textContent = "";
 
   const session = getSession();
+
+  // Pill navigation: Main, Stays, Finder, and Host/Bookings when logged in.
+  const mainLink = el("a", "pill-link", "Main") as HTMLAnchorElement;
+  mainLink.href = "#/properties";
+  const staysLink = el("a", "pill-link", "Stays") as HTMLAnchorElement;
+  staysLink.href = "#/properties";
+  const finderButton = Object.assign(el("button", "pill-link pill-finder", "Finder"), {
+    type: "button",
+    onclick: toggleFinder,
+  });
+  nav.append(mainLink, staysLink, finderButton);
+
   if (session) {
-    const createLink = el("a", "nav-link", "Create property") as HTMLAnchorElement;
-    createLink.href = "#/properties/new";
-    const bookingsLink = el("a", "nav-link", "My bookings") as HTMLAnchorElement;
+    const hostLink = el("a", "pill-link", "Host") as HTMLAnchorElement;
+    hostLink.href = "#/properties/new";
+    const bookingsLink = el("a", "pill-link", "Bookings") as HTMLAnchorElement;
     bookingsLink.href = "#/bookings";
-    nav.append(
-      homeLink,
-      createLink,
-      bookingsLink,
+    nav.append(hostLink, bookingsLink);
+  }
+
+  // Right side: email + Log out when logged in, Log in + Register when not.
+  if (session) {
+    userNav.append(
       el("span", "nav-user", session.user.email),
-      Object.assign(el("button", "nav-link", "Log out"), {
+      Object.assign(el("button", "user-link", "Log out"), {
         type: "button",
         onclick: () => void handleLogout(),
       })
     );
   } else {
-    nav.append(
-      homeLink,
-      Object.assign(el("button", "nav-link", "Log in"), {
-        type: "button",
-        onclick: () => renderAuth("login"),
-      }),
-      Object.assign(el("button", "nav-link", "Register"), {
-        type: "button",
-        onclick: () => renderAuth("register"),
-      })
-    );
+    const loginLink = el("a", "user-link", "Log in") as HTMLAnchorElement;
+    loginLink.href = "#/login";
+    const registerLink = el("a", "user-link", "Register") as HTMLAnchorElement;
+    registerLink.href = "#/register";
+    userNav.append(loginLink, registerLink);
   }
+
+  markCurrentRoute();
 }
 
 function renderAuth(mode: "login" | "register", notice?: string): void {
@@ -134,14 +368,16 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
   app.textContent = "";
 
   const isLogin = mode === "login";
+  const container = el("div", "form-container");
   const title = el("h2", undefined, isLogin ? "Log in" : "Create an account");
-  const form = el("form", "auth-form") as HTMLFormElement;
+  const form = el("form") as HTMLFormElement;
   const messages = el("div", "messages");
 
   if (notice) {
     showMessage(messages, notice, "info");
   }
 
+  const emailField = el("div", "form-field");
   const emailLabel = el("label", undefined, "Email");
   const emailInput = Object.assign(el("input"), {
     type: "email",
@@ -150,7 +386,9 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
     autocomplete: "email",
   });
   emailLabel.append(emailInput);
+  emailField.append(emailLabel);
 
+  const passwordField = el("div", "form-field");
   const passwordLabel = el("label", undefined, "Password");
   const passwordInput = Object.assign(el("input"), {
     type: "password",
@@ -160,19 +398,19 @@ function renderAuth(mode: "login" | "register", notice?: string): void {
     autocomplete: isLogin ? "current-password" : "new-password",
   });
   passwordLabel.append(passwordInput);
+  passwordField.append(passwordLabel);
 
-  const submit = Object.assign(el("button", undefined, isLogin ? "Log in" : "Register"), {
+  const submit = Object.assign(el("button", "btn btn-primary", isLogin ? "Log in" : "Register"), {
     type: "submit",
   });
   submit.dataset.label = isLogin ? "Log in" : "Register";
 
-  const switchButton = Object.assign(
-    el("button", "nav-link", isLogin ? "Need an account? Register" : "Already have an account? Log in"),
-    { type: "button", onclick: () => renderAuth(isLogin ? "register" : "login") }
-  );
+  const switchLink = el("a", "btn btn-secondary", isLogin ? "Need an account? Register" : "Already have an account? Log in") as HTMLAnchorElement;
+  switchLink.href = isLogin ? "#/register" : "#/login";
 
-  form.append(emailLabel, passwordLabel, submit, messages, switchButton);
-  app.append(title, form);
+  form.append(messages, emailField, passwordField, submit, switchLink);
+  container.append(title, form);
+  app.append(container);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -194,7 +432,9 @@ async function handleAuthSubmit(
     if (isLogin) {
       await login(email, password);
       renderNav();
-      route();
+      renderMobileMenu();
+      // Navigate to the list after login.
+      window.location.hash = "#/properties";
     } else {
       const result = await register(email, password);
       if (result.email_confirmation_required) {
@@ -223,7 +463,9 @@ async function handleAuthSubmit(
 async function handleLogout(): Promise<void> {
   await logout();
   renderNav();
-  route();
+  renderMobileMenu();
+  // Navigate to the list after logout.
+  window.location.hash = "#/properties";
 }
 
 // --- Startup -----------------------------------------------------------------
@@ -233,6 +475,7 @@ function route(): void {
   if (!app) {
     return;
   }
+  markCurrentRoute();
   const current = parseHash(window.location.hash);
   if (current.name === "list") {
     renderPropertyList(app);
@@ -241,27 +484,29 @@ function route(): void {
   } else if (current.name === "new") {
     // Creating a property requires login; send logged-out users to the login view.
     if (!getSession()) {
-      renderAuth("login", "You need to log in to create a property.");
+      window.location.hash = "#/login";
     } else {
       renderPropertyCreate(app);
     }
   } else if (current.name === "edit") {
     if (!getSession()) {
-      renderAuth("login", "You need to log in to edit a property.");
+      window.location.hash = "#/login";
     } else {
       renderPropertyEdit(app, current.id);
     }
   } else if (current.name === "login") {
     renderAuth("login");
+  } else if (current.name === "register") {
+    renderAuth("register");
   } else if (current.name === "bookings") {
     if (!getSession()) {
-      renderAuth("login", "You need to log in to see your bookings.");
+      window.location.hash = "#/login";
     } else {
       renderBookingList(app);
     }
   } else if (current.name === "booking-edit") {
     if (!getSession()) {
-      renderAuth("login", "You need to log in to edit a booking.");
+      window.location.hash = "#/login";
     } else {
       renderBookingEdit(app, current.id);
     }
@@ -274,6 +519,22 @@ async function init(): Promise<void> {
   loadSession();
   renderNav();
   startRouter(route);
+
+  // Wire up the finder toggle button.
+  if (finderToggle) {
+    finderToggle.addEventListener("click", toggleFinder);
+  }
+
+  // Wire up the menu toggle button.
+  if (menuToggle) {
+    menuToggle.addEventListener("click", toggleMenu);
+  }
+
+  // Render the finder panel with the search callback.
+  renderFinderPanel(searchProperties);
+
+  // Render the mobile menu.
+  renderMobileMenu();
 
   // If we have a session, verify it is still valid (and refresh if needed).
   if (getSession()) {
