@@ -13,10 +13,18 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header>
-      <h1>StayFinder</h1>
-      <nav id="nav"></nav>
+    <header class="site-header">
+      <a href="#/properties" class="logo">StayFinder<span class="logo-dot">.</span></a>
+      <nav id="nav" class="pill-nav" aria-label="Main navigation"></nav>
+      <div id="user-nav" class="user-nav"></div>
+      <button id="finder-toggle" class="finder-toggle" type="button" aria-expanded="false" aria-controls="finder-panel">
+        <span class="finder-icon">↓</span>
+        <span class="finder-label">Finder</span>
+      </button>
     </header>
+    <div id="finder-panel" class="finder-panel" hidden>
+      <div class="finder-content" id="finder-content"></div>
+    </div>
     <main id="app"></main>
 
     <script type="module" src="js/main.js"></script>

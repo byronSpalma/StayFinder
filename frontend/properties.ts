@@ -71,69 +71,20 @@ export function renderPropertyList(container: HTMLElement): void {
   container.textContent = "";
 
   const listContainer = el("div", "property-list");
-  const form = buildFilterForm((query) => void loadList(listContainer, query));
-  container.append(el("h2", undefined, "Properties"), form, listContainer);
+  container.append(el("h2", undefined, "Properties"), listContainer);
   renderFlash(container);
 
+  // The filter form lives in the finder panel (rendered by main.ts).
+  // We just need to load the list; the panel calls us back with the query.
   void loadList(listContainer, {});
 }
 
-function buildFilterForm(onSearch: (query: PropertyQuery) => void): HTMLFormElement {
-  const form = el("form", "filter-form") as HTMLFormElement;
-
-  const locationInput = Object.assign(el("input"), {
-    type: "text",
-    name: "location",
-    placeholder: "Location",
-  });
-
-  const maxPriceInput = Object.assign(el("input"), {
-    type: "number",
-    name: "max_price",
-    placeholder: "Max price",
-    min: "1",
-  });
-
-  const guestsInput = Object.assign(el("input"), {
-    type: "number",
-    name: "guests",
-    placeholder: "Guests",
-    min: "1",
-  });
-
-  const sortSelect = el("select") as HTMLSelectElement;
-  sortSelect.append(
-    Object.assign(el("option", undefined, "Sort by price"), { value: "" }),
-    Object.assign(el("option", undefined, "Price: low to high"), { value: "price_asc" }),
-    Object.assign(el("option", undefined, "Price: high to low"), { value: "price_desc" })
-  );
-
-  const submit = Object.assign(el("button", undefined, "Search"), { type: "submit" });
-
-  form.append(locationInput, maxPriceInput, guestsInput, sortSelect, submit);
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const query: PropertyQuery = {};
-    const location = locationInput.value.trim();
-    if (location) {
-      query.location = location;
-    }
-    const maxPrice = Number(maxPriceInput.value);
-    if (maxPriceInput.value !== "" && maxPrice > 0) {
-      query.max_price = maxPrice;
-    }
-    const guests = Number(guestsInput.value);
-    if (guestsInput.value !== "" && guests > 0) {
-      query.guests = guests;
-    }
-    if (sortSelect.value === "price_asc" || sortSelect.value === "price_desc") {
-      query.sort = sortSelect.value;
-    }
-    onSearch(query);
-  });
-
-  return form;
+// Called by main.ts when the finder panel is submitted.
+export function searchProperties(query: PropertyQuery): void {
+  const listContainer = document.querySelector<HTMLElement>(".property-list");
+  if (listContainer) {
+    void loadList(listContainer, query);
+  }
 }
 
 async function loadList(container: HTMLElement, query: PropertyQuery): Promise<void> {

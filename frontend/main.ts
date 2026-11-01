@@ -12,7 +12,8 @@ import {
   renderPropertyList,
 } from "./properties.js";
 import { renderBookingEdit, renderBookingList } from "./bookings.js";
-import type { MeResponse, RegisterResponse, Session } from "./types.js";
+import { searchProperties } from "./properties.js";
+import type { MeResponse, PropertyQuery, RegisterResponse, Session } from "./types.js";
 
 // --- Small DOM helpers -------------------------------------------------------
 
@@ -86,40 +87,165 @@ async function logout(): Promise<void> {
 
 const app = document.querySelector<HTMLElement>("#app");
 const nav = document.querySelector<HTMLElement>("#nav");
+const userNav = document.querySelector<HTMLElement>("#user-nav");
+const finderToggle = document.querySelector<HTMLButtonElement>("#finder-toggle");
+const finderPanel = document.querySelector<HTMLElement>("#finder-panel");
+const finderContent = document.querySelector<HTMLElement>("#finder-content");
+
+// --- Finder panel (search/filter) ----------------------------------------------
+
+let finderOpen = false;
+
+function toggleFinder(): void {
+  finderOpen = !finderOpen;
+  if (finderPanel) {
+    finderPanel.hidden = !finderOpen;
+    finderPanel.classList.toggle("open", finderOpen);
+  }
+  if (finderToggle) {
+    finderToggle.setAttribute("aria-expanded", String(finderOpen));
+    finderToggle.classList.toggle("open", finderOpen);
+  }
+}
+
+function closeFinder(): void {
+  if (!finderOpen) {
+    return;
+  }
+  finderOpen = false;
+  if (finderPanel) {
+    finderPanel.hidden = true;
+    finderPanel.classList.remove("open");
+  }
+  if (finderToggle) {
+    finderToggle.setAttribute("aria-expanded", "false");
+    finderToggle.classList.remove("open");
+  }
+}
+
+// Renders the filter form inside the finder panel.
+function renderFinderPanel(onSearch: (query: PropertyQuery) => void): void {
+  if (!finderContent) {
+    return;
+  }
+  finderContent.textContent = "";
+
+  const form = el("form", "finder-form") as HTMLFormElement;
+
+  const whereField = el("div", "finder-field");
+  const whereLabel = el("label", undefined, "Where");
+  const whereInput = Object.assign(el("input"), {
+    type: "text",
+    name: "location",
+    placeholder: "Search destinations",
+  });
+  whereLabel.append(whereInput);
+  whereField.append(whereLabel);
+
+  const whoField = el("div", "finder-field");
+  const whoLabel = el("label", undefined, "Who");
+  const whoInput = Object.assign(el("input"), {
+    type: "number",
+    name: "guests",
+    placeholder: "Add guests",
+    min: "1",
+  });
+  whoLabel.append(whoInput);
+  whoField.append(whoLabel);
+
+  const priceField = el("div", "finder-field");
+  const priceLabel = el("label", undefined, "Max price");
+  const priceInput = Object.assign(el("input"), {
+    type: "number",
+    name: "max_price",
+    placeholder: "Max price",
+    min: "1",
+  });
+  priceLabel.append(priceInput);
+  priceField.append(priceLabel);
+
+  const sortField = el("div", "finder-field");
+  const sortLabel = el("label", undefined, "Sort");
+  const sortSelect = el("select") as HTMLSelectElement;
+  sortSelect.append(
+    Object.assign(el("option", undefined, "Default"), { value: "" }),
+    Object.assign(el("option", undefined, "Price: low to high"), { value: "price_asc" }),
+    Object.assign(el("option", undefined, "Price: high to low"), { value: "price_desc" })
+  );
+  sortLabel.append(sortSelect);
+  sortField.append(sortLabel);
+
+  const submit = Object.assign(el("button", "finder-submit", "Search"), { type: "submit" });
+
+  form.append(whereField, whoField, priceField, sortField, submit);
+  finderContent.append(form);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const query: PropertyQuery = {};
+    const location = whereInput.value.trim();
+    if (location) {
+      query.location = location;
+    }
+    const guests = Number(whoInput.value);
+    if (whoInput.value !== "" && guests > 0) {
+      query.guests = guests;
+    }
+    const maxPrice = Number(priceInput.value);
+    if (priceInput.value !== "" && maxPrice > 0) {
+      query.max_price = maxPrice;
+    }
+    if (sortSelect.value === "price_asc" || sortSelect.value === "price_desc") {
+      query.sort = sortSelect.value;
+    }
+    onSearch(query);
+    closeFinder();
+  });
+}
+
+// --- Navigation ----------------------------------------------------------------
 
 function renderNav(): void {
-  if (!nav) {
+  if (!nav || !userNav) {
     return;
   }
   nav.textContent = "";
+  userNav.textContent = "";
 
-  const homeLink = el("a", "nav-link", "Properties") as HTMLAnchorElement;
-  homeLink.href = "#/properties";
+  // Pill navigation: Main, Stays, Finder
+  const mainLink = el("a", "pill-link", "Main") as HTMLAnchorElement;
+  mainLink.href = "#/properties";
+  const staysLink = el("a", "pill-link", "Stays") as HTMLAnchorElement;
+  staysLink.href = "#/properties";
+  const finderButton = Object.assign(el("button", "pill-link pill-finder", "Finder"), {
+    type: "button",
+    onclick: toggleFinder,
+  });
+  nav.append(mainLink, staysLink, finderButton);
 
+  // User links: different for logged in vs logged out
   const session = getSession();
   if (session) {
-    const createLink = el("a", "nav-link", "Create property") as HTMLAnchorElement;
+    const createLink = el("a", "user-link", "Create property") as HTMLAnchorElement;
     createLink.href = "#/properties/new";
-    const bookingsLink = el("a", "nav-link", "My bookings") as HTMLAnchorElement;
+    const bookingsLink = el("a", "user-link", "My bookings") as HTMLAnchorElement;
     bookingsLink.href = "#/bookings";
-    nav.append(
-      homeLink,
+    userNav.append(
       createLink,
       bookingsLink,
       el("span", "nav-user", session.user.email),
-      Object.assign(el("button", "nav-link", "Log out"), {
+      Object.assign(el("button", "user-link", "Log out"), {
         type: "button",
         onclick: () => void handleLogout(),
       })
     );
   } else {
-    nav.append(
-      homeLink,
-      Object.assign(el("button", "nav-link", "Log in"), {
+    userNav.append(
+      Object.assign(el("button", "user-link", "Log in"), {
         type: "button",
         onclick: () => renderAuth("login"),
       }),
-      Object.assign(el("button", "nav-link", "Register"), {
+      Object.assign(el("button", "user-link", "Register"), {
         type: "button",
         onclick: () => renderAuth("register"),
       })
@@ -274,6 +400,14 @@ async function init(): Promise<void> {
   loadSession();
   renderNav();
   startRouter(route);
+
+  // Wire up the finder toggle button.
+  if (finderToggle) {
+    finderToggle.addEventListener("click", toggleFinder);
+  }
+
+  // Render the finder panel with the search callback.
+  renderFinderPanel(searchProperties);
 
   // If we have a session, verify it is still valid (and refresh if needed).
   if (getSession()) {
