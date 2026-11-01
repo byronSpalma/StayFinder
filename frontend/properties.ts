@@ -4,7 +4,8 @@
 import { apiFetch, ApiError } from "./api.js";
 import { getSession } from "./session.js";
 import { renderPropertyForm } from "./propertyForm.js";
-import type { DeletePropertyResponse, Property, PropertyQuery } from "./types.js";
+import { renderBookingForm, nightsBetween } from "./bookingForm.js";
+import type { Booking, DeletePropertyResponse, Property, PropertyQuery } from "./types.js";
 
 // --- Small DOM helper (same pattern as main.ts) -------------------------------
 
@@ -211,8 +212,12 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
       container.append(actions);
     }
 
-    // Placeholder: the booking form is added in the next step.
-    container.append(el("p", "state", "Booking form coming soon."));
+    // Booking form (or a login prompt when logged out).
+    const bookingContainer = el("div", "booking-section");
+    container.append(bookingContainer);
+    renderBookingForm(bookingContainer, property, (booking) => {
+      renderBookingConfirmation(container, property, booking);
+    });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       container.textContent = "";
@@ -312,6 +317,39 @@ export function renderFlash(container: HTMLElement): void {
     container.prepend(el("p", "message info", flashMessage));
     flashMessage = null;
   }
+}
+
+// --- Booking confirmation ------------------------------------------------------
+
+// Shown on the detail page after a successful booking.
+function renderBookingConfirmation(
+  container: HTMLElement,
+  property: Property,
+  booking: Booking
+): void {
+  container.textContent = "";
+
+  const nights = nightsBetween(booking.check_in, booking.check_out);
+  const total = nights !== null ? nights * property.price_per_night : null;
+
+  const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
+  backLink.href = "#/properties";
+
+  const bookingsLink = el("a", "button-link", "My bookings") as HTMLAnchorElement;
+  bookingsLink.href = "#/bookings";
+
+  container.append(
+    el("h2", undefined, "Booking confirmed!"),
+    el("p", undefined, `Booking ID: ${booking.booking_id}`),
+    el("p", undefined, `Property: ${property.title}`),
+    el("p", undefined, `Check-in: ${booking.check_in}`),
+    el("p", undefined, `Check-out: ${booking.check_out}`),
+    el("p", undefined, `Guests: ${booking.guests}`),
+    el("p", undefined, `Status: ${booking.status}`),
+    el("p", undefined, total !== null ? `Total: ${total} kr (${nights} nights)` : ""),
+    backLink,
+    bookingsLink
+  );
 }
 
 // --- Not found -----------------------------------------------------------------

@@ -69,3 +69,22 @@ export interface DeletePropertyResponse {
   message: string;
   property: Property;
 }
+
+// What the client sends when creating a booking.
+// booking_id and user_id are set by the server, never by the client.
+export interface NewBooking {
+  property_id: string;
+  guest_name: string;
+  guest_email: string;
+  check_in: string;
+  check_out: string;
+  guests: number;
+  status?: "pending" | "confirmed" | "cancelled";
+}
+
+// A booking as returned by the backend.
+export interface Booking extends NewBooking {
+  booking_id: string;
+  status: "pending" | "confirmed" | "cancelled";
+  user_id: string | null;
+}
