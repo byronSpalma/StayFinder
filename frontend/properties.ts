@@ -178,12 +178,12 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     // were shown by mistake.
     const session = getSession();
     if (session && session.user.id === property.owner_id) {
-      const actions = el("div", "property-actions");
+      const actions = el("div", "detail-actions");
 
-      const editLink = el("a", "button-link", "Edit") as HTMLAnchorElement;
+      const editLink = el("a", "btn btn-outline", "Edit") as HTMLAnchorElement;
       editLink.href = `#/properties/${encodeURIComponent(property.property_id)}/edit`;
 
-      const deleteButton = Object.assign(el("button", "danger", "Delete"), {
+      const deleteButton = Object.assign(el("button", "btn btn-delete", "Delete"), {
         type: "button",
         onclick: () => void handleDelete(container, property),
       });

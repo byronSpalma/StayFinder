@@ -231,14 +231,23 @@ async function loadBookingForEdit(container: HTMLElement, id: string): Promise<v
     });
 
     container.textContent = "";
-    container.append(el("h2", undefined, `Edit booking ${booking.booking_id}`));
 
-    const form = el("form", "auth-form") as HTMLFormElement;
+    const page = el("div", "page-container");
+    const formContainer = el("div", "form-container wide");
+
+    formContainer.append(el("h2", undefined, "Edit booking"));
+    formContainer.append(el("p", "page-subtitle", property.title));
+
+    const form = el("form") as HTMLFormElement;
     const messages = el("div", "messages");
     const summary = el("p", "booking-summary");
 
-    const checkInInput = dateField(form, "Check-in", booking.check_in);
-    const checkOutInput = dateField(form, "Check-out", booking.check_out);
+    // Check-in and check-out side by side on wide screens.
+    const dateRow = el("div", "form-row");
+    const checkInInput = dateField(dateRow, "Check-in", booking.check_in);
+    const checkOutInput = dateField(dateRow, "Check-out", booking.check_out);
+    form.append(dateRow);
+
     const guestsInput = numberField(form, "Guests", String(booking.guests), property.max_guests);
     const nameInput = textField(form, "Your name", booking.guest_name);
     const emailInput = textField(form, "Your email", booking.guest_email);
@@ -251,7 +260,9 @@ async function loadBookingForEdit(container: HTMLElement, id: string): Promise<v
     cancelLink.href = "#/bookings";
 
     form.append(messages, submit, cancelLink, summary);
-    container.append(form);
+    formContainer.append(form);
+    page.append(formContainer);
+    container.append(page);
 
     const updateSummary = () => {
       const nights = nightsBetween(checkInInput.value, checkOutInput.value);
@@ -345,20 +356,23 @@ async function loadBookingForEdit(container: HTMLElement, id: string): Promise<v
 
 // --- Form field helpers (same pattern as bookingForm.ts) ------------------------
 
-function dateField(form: HTMLFormElement, label: string, value: string): HTMLInputElement {
+function dateField(container: HTMLElement, label: string, value: string): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type: "date", required: true, value });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  container.append(fieldContainer);
   return input;
 }
 
 function numberField(
-  form: HTMLFormElement,
+  container: HTMLElement,
   label: string,
   value: string,
   max: number
 ): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), {
     type: "number",
@@ -369,15 +383,18 @@ function numberField(
     value,
   });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  container.append(fieldContainer);
   return input;
 }
 
-function textField(form: HTMLFormElement, label: string, value: string): HTMLInputElement {
+function textField(container: HTMLElement, label: string, value: string): HTMLInputElement {
+  const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type: "text", required: true, value });
   labelElement.append(input);
-  form.append(labelElement);
+  fieldContainer.append(labelElement);
+  container.append(fieldContainer);
   return input;
 }
 
