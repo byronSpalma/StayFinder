@@ -140,11 +140,11 @@ function renderMobileMenu(): void {
   propertiesLink.addEventListener("click", closeMenu);
 
   if (session) {
-    const createLink = el("a", "mobile-menu-link", "Create property") as HTMLAnchorElement;
-    createLink.href = "#/properties/new";
-    createLink.addEventListener("click", closeMenu);
+    const hostLink = el("a", "mobile-menu-link", "Host") as HTMLAnchorElement;
+    hostLink.href = "#/properties/new";
+    hostLink.addEventListener("click", closeMenu);
 
-    const bookingsLink = el("a", "mobile-menu-link", "My bookings") as HTMLAnchorElement;
+    const bookingsLink = el("a", "mobile-menu-link", "Bookings") as HTMLAnchorElement;
     bookingsLink.href = "#/bookings";
     bookingsLink.addEventListener("click", closeMenu);
 
@@ -158,7 +158,7 @@ function renderMobileMenu(): void {
       },
     });
 
-    mobileMenuContent.append(propertiesLink, createLink, bookingsLink, emailSpan, logoutButton);
+    mobileMenuContent.append(propertiesLink, hostLink, bookingsLink, emailSpan, logoutButton);
   } else {
     const loginLink = el("a", "mobile-menu-link", "Log in") as HTMLAnchorElement;
     loginLink.href = "#/login";
@@ -292,6 +292,24 @@ function renderFinderPanel(onSearch: (query: PropertyQuery) => void): void {
 
 // --- Navigation ----------------------------------------------------------------
 
+// Marks the pill link matching the current route with aria-current="page".
+function markCurrentRoute(): void {
+  if (!nav) {
+    return;
+  }
+  const hash = window.location.hash || "#/properties";
+  const links = nav.querySelectorAll<HTMLAnchorElement>(".pill-link[href]");
+  for (const link of links) {
+    const isCurrent = link.hash === hash;
+    link.classList.toggle("current", isCurrent);
+    if (isCurrent) {
+      link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  }
+}
+
 function renderNav(): void {
   if (!nav || !userNav) {
     return;
@@ -299,7 +317,9 @@ function renderNav(): void {
   nav.textContent = "";
   userNav.textContent = "";
 
-  // Pill navigation: Main, Stays, Finder
+  const session = getSession();
+
+  // Pill navigation: Main, Stays, Finder, and Host/Bookings when logged in.
   const mainLink = el("a", "pill-link", "Main") as HTMLAnchorElement;
   mainLink.href = "#/properties";
   const staysLink = el("a", "pill-link", "Stays") as HTMLAnchorElement;
@@ -310,16 +330,17 @@ function renderNav(): void {
   });
   nav.append(mainLink, staysLink, finderButton);
 
-  // User links: different for logged in vs logged out
-  const session = getSession();
   if (session) {
-    const createLink = el("a", "user-link", "Create property") as HTMLAnchorElement;
-    createLink.href = "#/properties/new";
-    const bookingsLink = el("a", "user-link", "My bookings") as HTMLAnchorElement;
+    const hostLink = el("a", "pill-link", "Host") as HTMLAnchorElement;
+    hostLink.href = "#/properties/new";
+    const bookingsLink = el("a", "pill-link", "Bookings") as HTMLAnchorElement;
     bookingsLink.href = "#/bookings";
+    nav.append(hostLink, bookingsLink);
+  }
+
+  // Right side: email + Log out when logged in, Log in + Register when not.
+  if (session) {
     userNav.append(
-      createLink,
-      bookingsLink,
       el("span", "nav-user", session.user.email),
       Object.assign(el("button", "user-link", "Log out"), {
         type: "button",
@@ -333,6 +354,8 @@ function renderNav(): void {
     registerLink.href = "#/register";
     userNav.append(loginLink, registerLink);
   }
+
+  markCurrentRoute();
 }
 
 function renderAuth(mode: "login" | "register", notice?: string): void {
@@ -449,6 +472,7 @@ function route(): void {
   if (!app) {
     return;
   }
+  markCurrentRoute();
   const current = parseHash(window.location.hash);
   if (current.name === "list") {
     renderPropertyList(app);

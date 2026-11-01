@@ -58,9 +58,9 @@ button {
 .site-header {
   max-width: 96rem;
   margin: 0 auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   height: 6rem;
   padding: 0 1.25rem;
 }
@@ -83,17 +83,15 @@ button {
   letter-spacing: -0.02em;
   color: var(--color-ink);
   text-decoration: none;
+  justify-self: start;
 }
 
 .logo-dot {
   color: var(--color-slate);
 }
 
-/* Pill navigation: centered in the header, hidden on small screens. */
+/* Pill navigation: in the middle column of the header grid. */
 .pill-nav {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: none;
   gap: 0.25rem;
   padding: 0.375rem;
@@ -102,10 +100,22 @@ button {
   background: rgb(255 255 255 / 75%);
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-nav);
+  justify-self: center;
 }
 
+/* Logged out: 3 tabs fit from 640px. Logged in: 5 tabs need 1000px. */
 @media (min-width: 40rem) {
   .pill-nav {
+    display: flex;
+  }
+}
+
+body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
+  display: none;
+}
+
+@media (min-width: 62.5rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
     display: flex;
   }
 }
@@ -120,10 +130,16 @@ button {
   background: none;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .pill-link:hover {
   background: var(--color-mist);
+}
+
+.pill-link.current {
+  background: var(--color-mist);
+  font-weight: 600;
 }
 
 .pill-finder {
@@ -135,15 +151,27 @@ button {
   background: var(--color-slate);
 }
 
-/* User links: to the right of the pill nav, hidden on small screens. */
+/* User links: right column of the header grid. */
 .user-nav {
   display: none;
   gap: 0.75rem;
   align-items: center;
+  justify-self: end;
+  min-width: 0;
 }
 
 @media (min-width: 40rem) {
   .user-nav {
+    display: flex;
+  }
+}
+
+body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
+  display: none;
+}
+
+@media (min-width: 62.5rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
     display: flex;
   }
 }
@@ -157,6 +185,7 @@ button {
   border: none;
   cursor: pointer;
   padding: 0;
+  white-space: nowrap;
 }
 
 .user-link:hover {
@@ -166,17 +195,32 @@ button {
 .nav-user {
   font-size: 0.875rem;
   color: var(--color-slate);
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Mobile actions: search and menu buttons, only visible on small screens. */
+/* Mobile actions: search and menu buttons. */
 .mobile-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  justify-self: end;
 }
 
 @media (min-width: 40rem) {
   .mobile-actions {
+    display: none;
+  }
+}
+
+body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
+  display: flex;
+}
+
+@media (min-width: 62.5rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
     display: none;
   }
 }
