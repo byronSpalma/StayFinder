@@ -180,3 +180,30 @@ button.danger {
   padding-top: 1rem;
   border-top: 1px solid #ddd;
 }
+
+.booking-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.booking-card {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.booking-card h3 {
+  margin: 0 0 0.25rem;
+}
+
+.booking-card p {
+  margin: 0.25rem 0;
+}
+
+.booking-status {
+  font-weight: 600;
+}
+
+.booking-status.cancelled {
+  color: #c00;
+}
