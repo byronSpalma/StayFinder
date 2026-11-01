@@ -3,6 +3,8 @@
 export type Route =
   | { name: "list" }
   | { name: "detail"; id: string }
+  | { name: "new" }
+  | { name: "edit"; id: string }
   | { name: "not-found" };
 
 // Turns "#/properties/property_1001" into a route.
@@ -15,6 +17,12 @@ export function parseHash(hash: string): Route {
   }
   if (parts[0] === "properties" && parts.length === 1) {
     return { name: "list" };
+  }
+  if (parts[0] === "properties" && parts[1] === "new" && parts.length === 2) {
+    return { name: "new" };
+  }
+  if (parts[0] === "properties" && parts.length === 3 && parts[1] && parts[2] === "edit") {
+    return { name: "edit", id: decodeURIComponent(parts[1]) };
   }
   if (parts[0] === "properties" && parts.length === 2 && parts[1]) {
     return { name: "detail", id: decodeURIComponent(parts[1]) };

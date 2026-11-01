@@ -53,3 +53,19 @@ export interface PropertyQuery {
   guests?: number;
   sort?: "price_asc" | "price_desc";
 }
+
+// What the client sends when creating or replacing a property.
+// property_id and owner_id are set by the server, never by the client.
+export interface NewProperty {
+  title: string;
+  description: string;
+  location: string;
+  price_per_night: number;
+  max_guests: number;
+}
+
+// What DELETE /properties/:id returns.
+export interface DeletePropertyResponse {
+  message: string;
+  property: Property;
+}

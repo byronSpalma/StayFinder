@@ -134,6 +134,32 @@ main {
   color: #555;
 }
 
+.property-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.button-link {
+  display: inline-block;
+  font: inherit;
+  padding: 0.4rem 1rem;
+  border: 1px solid #06c;
+  border-radius: 4px;
+  color: #06c;
+  text-decoration: none;
+}
+
+button.danger {
+  font: inherit;
+  padding: 0.4rem 1rem;
+  border: 1px solid #c00;
+  border-radius: 4px;
+  background: none;
+  color: #c00;
+  cursor: pointer;
+}
+
 .back-link {
   color: #06c;
   display: inline-block;
