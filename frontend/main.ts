@@ -193,6 +193,11 @@ function toggleFinder(): void {
     finderToggle.setAttribute("aria-expanded", String(finderOpen));
     finderToggle.classList.toggle("open", finderOpen);
   }
+  // Keep the pill Finder button's aria-expanded in sync.
+  const pillFinder = nav?.querySelector<HTMLButtonElement>(".pill-finder");
+  if (pillFinder) {
+    pillFinder.setAttribute("aria-expanded", String(finderOpen));
+  }
 }
 
 function closeFinder(): void {
@@ -207,6 +212,10 @@ function closeFinder(): void {
   if (finderToggle) {
     finderToggle.setAttribute("aria-expanded", "false");
     finderToggle.classList.remove("open");
+  }
+  const pillFinder = nav?.querySelector<HTMLButtonElement>(".pill-finder");
+  if (pillFinder) {
+    pillFinder.setAttribute("aria-expanded", "false");
   }
 }
 
@@ -327,10 +336,15 @@ function renderNav(): void {
   mainLink.href = "#/properties";
   const staysLink = el("a", "pill-link", "Stays") as HTMLAnchorElement;
   staysLink.href = "#/properties";
-  const finderButton = Object.assign(el("button", "pill-link pill-finder", "Finder"), {
-    type: "button",
-    onclick: toggleFinder,
-  });
+  const finderButton = el("button", "pill-link pill-finder") as HTMLButtonElement;
+  finderButton.type = "button";
+  finderButton.setAttribute("aria-expanded", "false");
+  finderButton.setAttribute("aria-controls", "finder-panel");
+  finderButton.addEventListener("click", toggleFinder);
+  const finderText = el("span", undefined, "Finder");
+  const finderArrow = el("span", "finder-arrow", "↓");
+  finderArrow.setAttribute("aria-hidden", "true");
+  finderButton.append(finderText, finderArrow);
   nav.append(mainLink, staysLink, finderButton);
 
   if (session) {

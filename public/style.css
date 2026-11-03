@@ -154,10 +154,23 @@ body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
 .pill-finder {
   background: var(--color-ink);
   color: var(--color-cream);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .pill-finder:hover {
   background: var(--color-slate);
+}
+
+.finder-arrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  transition: transform 250ms;
+}
+
+.pill-finder[aria-expanded="true"] .finder-arrow {
+  transform: rotate(180deg);
 }
 
 /* User links: right column of the header grid. */
