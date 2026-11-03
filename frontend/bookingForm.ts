@@ -64,49 +64,124 @@ export function renderBookingForm(
 ): void {
   const session = getSession();
 
+  const card = el("div", "booking-card-panel");
+
+  // Price header
+  const priceHeader = el("div", "booking-price-header");
+  priceHeader.append(
+    el("span", "booking-price", `${property.price_per_night} kr`),
+    el("span", "booking-price-unit", "/ night")
+  );
+  card.append(priceHeader);
+
   // Logged-out users get a prompt instead of the form.
   if (!session) {
-    const loginLink = el("a", "btn btn-primary", "Log in to book") as HTMLAnchorElement;
-    loginLink.href = "#/login";
-    container.append(
-      el("h3", undefined, "Book this property"),
-      el("p", "state", "You need to log in to make a booking."),
-      loginLink
+    card.append(
+      el("p", "state", "Log in to book your stay"),
+      Object.assign(el("a", "btn btn-primary", "Log in to book") as HTMLAnchorElement, {
+        href: "#/login",
+      })
     );
+    container.append(card);
     return;
   }
 
-  container.append(el("h3", undefined, "Book this property"));
-
   const form = el("form") as HTMLFormElement;
   const messages = el("div", "messages");
-  const summary = el("p", "booking-summary");
 
-  const checkInInput = dateField(form, "Check-in", todayString());
-  const checkOutInput = dateField(form, "Check-out", todayString());
-  const guestsInput = numberField(form, "Guests", "1", property.max_guests);
+  // Check-in and check-out side by side.
+  const dateRow = el("div", "form-row");
+  const checkInInput = dateField(dateRow, "Check-in", todayString());
+  const checkOutInput = dateField(dateRow, "Check-out", todayString());
+  form.append(dateRow);
+
+  // Guests stepper.
+  const guestsField = el("div", "form-field");
+  const guestsLabel = el("label", undefined, "Guests");
+  const stepper = el("div", "guests-stepper");
+  const decreaseButton = Object.assign(el("button", "stepper-btn", "−"), {
+    type: "button",
+    "aria-label": "Decrease guests",
+  });
+  const guestsInput = Object.assign(el("input"), {
+    type: "number",
+    required: true,
+    min: "1",
+    max: String(property.max_guests),
+    step: "1",
+    value: "1",
+  });
+  const increaseButton = Object.assign(el("button", "stepper-btn", "+"), {
+    type: "button",
+    "aria-label": "Increase guests",
+  });
+  stepper.append(decreaseButton, guestsInput, increaseButton);
+  guestsLabel.append(stepper);
+  guestsField.append(guestsLabel);
+  form.append(guestsField);
+
+  // Name and email.
   const nameInput = textField(form, "Your name", "");
   const emailInput = textField(form, "Your email", session.user.email);
   emailInput.type = "email";
 
-  const submit = Object.assign(el("button", "btn btn-primary", "Book"), { type: "submit" });
-  submit.dataset.label = "Book";
+  // Price summary (only shown when dates are valid).
+  const summary = el("div", "booking-summary-panel");
+  summary.setAttribute("role", "status");
+  summary.setAttribute("aria-live", "polite");
+  const summaryRow = el("div", "booking-summary-row");
+  const summaryLabel = el("span", "booking-summary-label");
+  const summaryValue = el("span", "booking-summary-value");
+  summaryRow.append(summaryLabel, summaryValue);
+  const totalRow = el("div", "booking-total-row");
+  const totalLabel = el("span", "booking-total-label", "Total");
+  const totalValue = el("span", "booking-total-value");
+  totalRow.append(totalLabel, totalValue);
+  summary.append(summaryRow, totalRow);
+  summary.hidden = true;
 
-  form.append(messages, submit, summary);
-  container.append(form);
+  // Submit button.
+  const submit = Object.assign(el("button", "btn btn-primary", "Request to book"), { type: "submit" });
+  submit.dataset.label = "Request to book";
+
+  form.append(messages, summary, submit);
+  card.append(form);
+  container.append(card);
 
   // Update the price preview whenever the dates change.
   const updateSummary = () => {
     const nights = nightsBetween(checkInInput.value, checkOutInput.value);
     if (nights === null) {
-      summary.textContent = "";
+      summary.hidden = true;
       return;
     }
     const total = nights * property.price_per_night;
-    summary.textContent = `${nights} night${nights === 1 ? "" : "s"} · ${total} kr total`;
+    summaryLabel.textContent = `${property.price_per_night} kr × ${nights} night${nights === 1 ? "" : "s"}`;
+    summaryValue.textContent = `${total} kr`;
+    totalValue.textContent = `${total} kr`;
+    summary.hidden = false;
   };
   checkInInput.addEventListener("change", updateSummary);
   checkOutInput.addEventListener("change", updateSummary);
+
+  // Guests stepper buttons.
+  const updateStepperButtons = () => {
+    const value = Number(guestsInput.value);
+    decreaseButton.disabled = value <= 1;
+    increaseButton.disabled = value >= property.max_guests;
+  };
+  decreaseButton.addEventListener("click", () => {
+    guestsInput.stepDown();
+    guestsInput.dispatchEvent(new Event("input", { bubbles: true }));
+    updateStepperButtons();
+  });
+  increaseButton.addEventListener("click", () => {
+    guestsInput.stepUp();
+    guestsInput.dispatchEvent(new Event("input", { bubbles: true }));
+    updateStepperButtons();
+  });
+  guestsInput.addEventListener("input", updateStepperButtons);
+  updateStepperButtons();
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -163,50 +238,28 @@ export function renderBookingForm(
         showMessage(messages, "Something went wrong. Please try again.", "error");
       }
       submit.disabled = false;
-      submit.textContent = submit.dataset.label ?? "Book";
+      submit.textContent = submit.dataset.label ?? "Request to book";
     }
   }
 }
 
-function dateField(form: HTMLFormElement, label: string, min: string): HTMLInputElement {
+function dateField(container: HTMLElement, label: string, min: string): HTMLInputElement {
   const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type: "date", required: true, min });
   labelElement.append(input);
   fieldContainer.append(labelElement);
-  form.append(fieldContainer);
+  container.append(fieldContainer);
   return input;
 }
 
-function numberField(
-  form: HTMLFormElement,
-  label: string,
-  value: string,
-  max: number
-): HTMLInputElement {
-  const fieldContainer = el("div", "form-field");
-  const labelElement = el("label", undefined, label);
-  const input = Object.assign(el("input"), {
-    type: "number",
-    required: true,
-    min: "1",
-    max: String(max),
-    step: "1",
-    value,
-  });
-  labelElement.append(input);
-  fieldContainer.append(labelElement);
-  form.append(fieldContainer);
-  return input;
-}
-
-function textField(form: HTMLFormElement, label: string, value: string): HTMLInputElement {
+function textField(container: HTMLElement, label: string, value: string): HTMLInputElement {
   const fieldContainer = el("div", "form-field");
   const labelElement = el("label", undefined, label);
   const input = Object.assign(el("input"), { type: "text", required: true, value });
   labelElement.append(input);
   fieldContainer.append(labelElement);
-  form.append(fieldContainer);
+  container.append(fieldContainer);
   return input;
 }
 

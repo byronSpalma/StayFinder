@@ -188,13 +188,43 @@ body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
   }
 }
 
+/* Logged in: email above Log out in a column, vertically centered against the pill. */
 body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+  align-self: center;
+}
+
+/* Logged in (5 tabs): mobile header below 56.25rem (900px), desktop from 900px. */
+body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
   display: none;
 }
 
-@media (min-width: 62.5rem) {
+@media (min-width: 56.25rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
+    display: flex;
+  }
+}
+
+@media (min-width: 56.25rem) {
   body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
     display: flex;
+  }
+}
+
+/* Compact header for logged-in windows between 900px and 1100px. */
+@media (min-width: 56.25rem) and (max-width: 68.75rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .site-header {
+    padding: 0 1.25rem;
+  }
+
+  body:has(.pill-nav .pill-link:nth-child(5)) .pill-link {
+    padding: 0.5rem 0.875rem;
+  }
+
+  body:has(.pill-nav .pill-link:nth-child(5)) .nav-user {
+    max-width: 11rem;
   }
 }
 
@@ -214,10 +244,27 @@ body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
   color: var(--color-slate);
 }
 
+/* Log out: 44px tall on touch screens, 32px with a mouse. */
+.user-link[type="button"] {
+  padding: 0.25rem 0;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (pointer: coarse) {
+  .user-link[type="button"] {
+    padding: 0.5rem 0;
+    min-height: 44px;
+  }
+}
+
 .nav-user {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  line-height: 1.2;
   color: var(--color-slate);
-  max-width: 12rem;
+  min-width: 0;
+  max-width: 14rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,7 +289,7 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   display: flex;
 }
 
-@media (min-width: 62.5rem) {
+@media (min-width: 56.25rem) {
   body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
     display: none;
   }
@@ -569,6 +616,14 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   transform: scale(1.03);
 }
 
+.property-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .property-card-content {
   position: absolute;
   bottom: 0;
@@ -637,8 +692,76 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   }
 }
 
-.detail-header {
-  margin-bottom: 2rem;
+/* Two-column layout: info on the left, booking card on the right. */
+.detail-layout {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+  grid-template-areas: "info" "booking";
+}
+
+@media (min-width: 64rem) {
+  .detail-layout {
+    grid-template-columns: minmax(0, 1fr) 26rem;
+    grid-template-areas: "info booking";
+  }
+}
+
+.detail-info {
+  grid-area: info;
+}
+
+.detail-booking {
+  grid-area: booking;
+}
+
+@media (min-width: 64rem) {
+  .detail-booking {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+/* Large image with a location chip on top. */
+.detail-image-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-radius: 1.75rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  max-height: 36rem;
+  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-slate) 100%);
+}
+
+.detail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-image-chip {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 90%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.detail-location-line {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+  margin: 0 0 0.5rem;
 }
 
 .detail-title {
@@ -646,19 +769,13 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   font-size: 2.5rem;
   line-height: 1;
   letter-spacing: -0.02em;
-  margin: 0 0 0.5rem;
+  margin: 0 0 1rem;
 }
 
 @media (min-width: 40rem) {
   .detail-title {
     font-size: 3rem;
   }
-}
-
-.detail-location {
-  font-size: 0.875rem;
-  color: var(--color-slate);
-  margin: 0;
 }
 
 .detail-description {
@@ -669,30 +786,14 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   margin: 0 0 1.5rem;
 }
 
-.detail-meta {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.detail-meta-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-meta-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-slate);
-  margin-bottom: 0.25rem;
-}
-
-.detail-meta-value {
-  font-size: 1.125rem;
-  font-weight: 500;
+.detail-guests-chip {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  background: var(--color-mist);
+  font-size: 0.875rem;
   color: var(--color-ink);
+  margin-bottom: 1.5rem;
 }
 
 /* Owner actions on the detail page: Edit and Delete. */
@@ -705,31 +806,107 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   border-top: 1px solid rgb(24 34 65 / 10%);
 }
 
-/* Booking form: rounded panel with mist background. */
-.booking-section {
-  max-width: 32rem;
-  margin: 2rem 0;
-  padding: 1.5rem;
+/* Booking card: sticky on the right from 64rem. */
+.booking-card-panel {
+  background: white;
   border-radius: 1.75rem;
+  padding: 1.5rem;
+  border: 1px solid rgb(24 34 65 / 10%);
+  box-shadow: var(--shadow-panel);
+}
+
+.booking-price-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgb(24 34 65 / 10%);
+}
+
+.booking-price {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--color-ink);
+}
+
+.booking-price-unit {
+  font-size: 0.875rem;
+  color: var(--color-slate);
+}
+
+/* Guests stepper. */
+.guests-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guests-stepper input {
+  flex: 1;
+  text-align: center;
+}
+
+.stepper-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(24 34 65 / 25%);
+  background: white;
+  color: var(--color-ink);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepper-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stepper-btn:hover:not(:disabled) {
   background: var(--color-mist);
 }
 
-.booking-section h3 {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin: 0 0 1rem;
+/* Price summary panel. */
+.booking-summary-panel {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--color-mist);
 }
 
-.booking-summary {
-  font-weight: 600;
-  font-size: 1.125rem;
+.booking-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
   color: var(--color-ink);
-  margin: 1rem 0 0;
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  background: rgb(255 255 255 / 50%);
+  margin-bottom: 0.5rem;
+}
+
+.booking-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgb(24 34 65 / 10%);
+}
+
+.booking-total-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.booking-total-value {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--color-ink);
 }
 
 /* --- Forms, buttons and messages (Figma stage 5) --- */
@@ -897,18 +1074,32 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
 /* Form row: two fields side by side on wide screens, stacked on mobile. */
 .form-row {
   display: grid;
-  gap: 1.25rem;
+  gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
 
 @media (min-width: 40rem) {
   .form-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 .form-row .form-field {
   margin-bottom: 0;
+  min-width: 0;
+}
+
+.form-row .form-field input {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+}
+
+/* Keep the calendar icon inside the field without pushing it out. */
+.form-row .form-field input::-webkit-calendar-picker-indicator {
+  margin-left: 0.25rem;
 }
 
 /* --- Booking cards (My bookings) --- */
@@ -1253,6 +1444,146 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   .confirmation-actions .btn {
     width: 100%;
   }
+}
+
+/* Detail page image. */
+.detail-image-container {
+  margin-bottom: 2rem;
+  border-radius: 1.75rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  max-height: 28rem;
+  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-slate) 100%);
+}
+
+.detail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Booking card image (Host list). */
+.booking-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.booking-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.booking-card > *:not(.booking-card-image) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Host page: "Your stays" cards with image on top and content below. */
+.stay-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .stay-list {
+    gap: 1rem;
+  }
+}
+
+.stay-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.75rem;
+  background: white;
+  border: 1px solid rgb(24 34 65 / 10%);
+  box-shadow: 0 0.25rem 1rem rgb(24 34 65 / 6%);
+  overflow: hidden;
+}
+
+.stay-card-image-area {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-slate) 100%);
+  overflow: hidden;
+}
+
+.stay-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stay-card-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Stay card details: LOCATION full width, PRICE and MAX GUESTS side by side. */
+.stay-card-details {
+  grid-template-columns: 1fr 1fr;
+}
+
+.stay-card-details .booking-card-detail:first-child {
+  grid-column: 1 / -1;
+}
+
+/* Actions pinned to the bottom of the card. */
+.stay-card-content .booking-card-actions {
+  margin-top: auto;
+}
+
+.stay-card-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  color: var(--color-ink);
+  text-decoration: none;
+  display: block;
+}
+
+.stay-card-title:hover {
+  color: var(--color-slate);
+}
+
+/* Host page header: subtitle gets more space before the button. */
+.page-header .page-subtitle {
+  margin-bottom: 1rem;
+}
+
+.host-create-btn {
+  width: 100%;
+}
+
+@media (min-width: 30rem) {
+  .host-create-btn {
+    width: auto;
+  }
+}
+
+/* Image preview in the property form. */
+.form-help {
+  font-size: 0.75rem;
+  color: var(--color-slate);
+  margin: 0.25rem 0 0;
+}
+
+.image-preview {
+  margin-top: 0.5rem;
+}
+
+.image-preview-img {
+  max-width: 100%;
+  max-height: 8rem;
+  border-radius: 0.75rem;
+  object-fit: cover;
 }
 
 /* --- Base styles (from stage 1) --- */

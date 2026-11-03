@@ -123,6 +123,19 @@ function buildPropertyCard(property: Property): HTMLElement {
   const link = el("a", "property-card") as HTMLAnchorElement;
   link.href = `#/properties/${encodeURIComponent(property.property_id)}`;
 
+  // Background image (if any), with a dark gradient over it for readability.
+  if (property.image_url) {
+    const img = el("img", "property-card-image") as HTMLImageElement;
+    img.src = property.image_url;
+    img.alt = "";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => {
+      img.remove();
+    });
+    link.append(img);
+  }
+
   // Card content: location (small uppercase), title (display), price/guests (small)
   const content = el("div", "property-card-content");
   content.append(
@@ -153,29 +166,37 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
 
     const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
     backLink.href = "#/properties";
+    detailPage.append(backLink);
 
-    const header = el("div", "detail-header");
-    header.append(
-      el("h1", "detail-title", property.title),
-      el("p", "detail-location", property.location)
-    );
+    // Two-column layout: info on the left, booking card on the right (from 64rem).
+    const layout = el("div", "detail-layout");
 
-    const description = el("p", "detail-description", property.description);
+    // --- Info column (left) ---
+    const info = el("div", "detail-info");
 
-    const meta = el("div", "detail-meta");
-    meta.append(
-      metaItem("Price", `${property.price_per_night} kr per night`),
-      metaItem("Max guests", String(property.max_guests))
-    );
+    // Large image with a location chip on top.
+    const imageContainer = el("div", "detail-image-container");
+    if (property.image_url) {
+      const img = el("img", "detail-image") as HTMLImageElement;
+      img.src = property.image_url;
+      img.alt = `Photo of ${property.title}`;
+      img.referrerPolicy = "no-referrer";
+      img.addEventListener("error", () => {
+        img.remove();
+      });
+      imageContainer.append(img);
+    }
+    const locationChip = el("span", "detail-image-chip", property.location);
+    imageContainer.append(locationChip);
+    info.append(imageContainer);
 
-    detailPage.append(backLink, header, description, meta);
-    container.append(detailPage);
-    renderFlash(container);
+    // Location, title, description, guests chip.
+    info.append(el("p", "detail-location-line", property.location));
+    info.append(el("h1", "detail-title", property.title));
+    info.append(el("p", "detail-description", property.description));
+    info.append(el("span", "detail-guests-chip", `Up to ${property.max_guests} guests`));
 
-    // Show Edit/Delete only when the logged-in user owns this property.
-    // This is only the UI: the real protection is in the backend and RLS,
-    // which reject changes to other users' properties even if these buttons
-    // were shown by mistake.
+    // Owner actions (Edit/Delete) below the info, not in the booking card.
     const session = getSession();
     if (session && session.user.id === property.owner_id) {
       const actions = el("div", "detail-actions");
@@ -189,12 +210,19 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
       });
 
       actions.append(editLink, deleteButton);
-      detailPage.append(actions);
+      info.append(actions);
     }
 
-    // Booking form (or a login prompt when logged out).
-    const bookingContainer = el("div", "booking-section");
-    detailPage.append(bookingContainer);
+    layout.append(info);
+
+    // --- Booking column (right) ---
+    const bookingContainer = el("div", "detail-booking");
+    layout.append(bookingContainer);
+
+    detailPage.append(layout);
+    container.append(detailPage);
+    renderFlash(container);
+
     renderBookingForm(bookingContainer, property, (booking) => {
       renderBookingConfirmation(container, property, booking);
     });
@@ -213,15 +241,6 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
     const message = error instanceof ApiError ? error.message : "Could not load the property.";
     showError(container, message, () => void loadDetail(container, id));
   }
-}
-
-function metaItem(label: string, value: string): HTMLElement {
-  const item = el("div", "detail-meta-item");
-  item.append(
-    el("span", "detail-meta-label", label),
-    el("span", "detail-meta-value", value)
-  );
-  return item;
 }
 
 // --- Create / edit / delete ----------------------------------------------------
