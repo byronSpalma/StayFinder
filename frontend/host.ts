@@ -61,7 +61,7 @@ async function loadStays(container: HTMLElement): Promise<void> {
       el("p", "page-subtitle", `Manage your listed properties · ${properties.length} ${properties.length === 1 ? "stay" : "stays"}`)
     );
 
-    const createLink = el("a", "btn btn-primary", "Create property") as HTMLAnchorElement;
+    const createLink = el("a", "btn btn-primary host-create-btn", "Create property") as HTMLAnchorElement;
     createLink.href = "#/properties/new";
     header.append(createLink);
 
@@ -80,7 +80,7 @@ async function loadStays(container: HTMLElement): Promise<void> {
       return;
     }
 
-    const list = el("div", "property-list");
+    const list = el("div", "stay-list");
     for (const property of properties) {
       list.append(buildStayCard(property, container));
     }
@@ -93,11 +93,12 @@ async function loadStays(container: HTMLElement): Promise<void> {
 }
 
 function buildStayCard(property: Property, listContainer: HTMLElement): HTMLElement {
-  const card = el("div", "booking-card");
+  const card = el("div", "stay-card");
 
-  // Background image (if any), with a dark gradient over it for readability.
+  // Image area on top (16/9), with the dark gradient as fallback.
+  const imageArea = el("div", "stay-card-image-area");
   if (property.image_url) {
-    const img = el("img", "booking-card-image") as HTMLImageElement;
+    const img = el("img", "stay-card-image") as HTMLImageElement;
     img.src = property.image_url;
     img.alt = "";
     img.loading = "lazy";
@@ -105,24 +106,25 @@ function buildStayCard(property: Property, listContainer: HTMLElement): HTMLElem
     img.addEventListener("error", () => {
       img.remove();
     });
-    card.append(img);
+    imageArea.append(img);
   }
+  card.append(imageArea);
 
-  // Title: link to the property detail page
-  const titleLink = el("a", "booking-card-title", property.title) as HTMLAnchorElement;
+  // Content area below the image: light background, dark text.
+  const content = el("div", "stay-card-content");
+
+  const titleLink = el("a", "stay-card-title", property.title) as HTMLAnchorElement;
   titleLink.href = `#/properties/${encodeURIComponent(property.property_id)}`;
-  card.append(titleLink);
+  content.append(titleLink);
 
-  // Details
   const details = el("div", "booking-card-details");
   details.append(
     detailItem("Location", property.location),
     detailItem("Price", `${property.price_per_night} kr / night`),
     detailItem("Max guests", String(property.max_guests))
   );
-  card.append(details);
+  content.append(details);
 
-  // Actions
   const actions = el("div", "booking-card-actions");
 
   const editLink = el("a", "btn btn-outline", "Edit") as HTMLAnchorElement;
@@ -135,7 +137,8 @@ function buildStayCard(property: Property, listContainer: HTMLElement): HTMLElem
   });
   actions.append(deleteButton);
 
-  card.append(actions);
+  content.append(actions);
+  card.append(content);
   return card;
 }
 
