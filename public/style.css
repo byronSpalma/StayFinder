@@ -188,13 +188,42 @@ body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
   }
 }
 
+/* Logged in: email above Log out in a column, so the pill never overlaps them. */
 body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+/* Logged in (5 tabs): mobile header below 56.25rem (900px), desktop from 900px. */
+body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
   display: none;
 }
 
-@media (min-width: 62.5rem) {
+@media (min-width: 56.25rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .pill-nav {
+    display: flex;
+  }
+}
+
+@media (min-width: 56.25rem) {
   body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
     display: flex;
+  }
+}
+
+/* Compact header for logged-in windows between 900px and 1100px. */
+@media (min-width: 56.25rem) and (max-width: 68.75rem) {
+  body:has(.pill-nav .pill-link:nth-child(5)) .site-header {
+    padding: 0 1.25rem;
+  }
+
+  body:has(.pill-nav .pill-link:nth-child(5)) .pill-link {
+    padding: 0.5rem 0.875rem;
+  }
+
+  body:has(.pill-nav .pill-link:nth-child(5)) .nav-user {
+    max-width: 11rem;
   }
 }
 
@@ -214,10 +243,19 @@ body:has(.pill-nav .pill-link:nth-child(5)) .user-nav {
   color: var(--color-slate);
 }
 
+/* Log out: at least 44px tall on touch screens, without making the header taller. */
+.user-link[type="button"] {
+  padding: 0.5rem 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .nav-user {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--color-slate);
-  max-width: 12rem;
+  min-width: 0;
+  max-width: 14rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,7 +280,7 @@ body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
   display: flex;
 }
 
-@media (min-width: 62.5rem) {
+@media (min-width: 56.25rem) {
   body:has(.pill-nav .pill-link:nth-child(5)) .mobile-actions {
     display: none;
   }

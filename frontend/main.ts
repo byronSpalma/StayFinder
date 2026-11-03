@@ -359,10 +359,12 @@ function renderNav(): void {
     nav.append(hostLink, bookingsLink);
   }
 
-  // Right side: email + Log out when logged in, Log in + Register when not.
+  // Right side: email above Log out when logged in, Log in + Register when not.
   if (session) {
+    const emailSpan = el("span", "nav-user", session.user.email);
+    emailSpan.title = session.user.email;
     userNav.append(
-      el("span", "nav-user", session.user.email),
+      emailSpan,
       Object.assign(el("button", "user-link", "Log out"), {
         type: "button",
         onclick: () => void handleLogout(),
