@@ -117,7 +117,7 @@ function buildStayCard(property: Property, listContainer: HTMLElement): HTMLElem
   titleLink.href = `#/properties/${encodeURIComponent(property.property_id)}`;
   content.append(titleLink);
 
-  const details = el("div", "booking-card-details");
+  const details = el("div", "booking-card-details stay-card-details");
   details.append(
     detailItem("Location", property.location),
     detailItem("Price", `${property.price_per_night} kr / night`),
