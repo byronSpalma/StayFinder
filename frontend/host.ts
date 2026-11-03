@@ -95,6 +95,19 @@ async function loadStays(container: HTMLElement): Promise<void> {
 function buildStayCard(property: Property, listContainer: HTMLElement): HTMLElement {
   const card = el("div", "booking-card");
 
+  // Background image (if any), with a dark gradient over it for readability.
+  if (property.image_url) {
+    const img = el("img", "booking-card-image") as HTMLImageElement;
+    img.src = property.image_url;
+    img.alt = "";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => {
+      img.remove();
+    });
+    card.append(img);
+  }
+
   // Title: link to the property detail page
   const titleLink = el("a", "booking-card-title", property.title) as HTMLAnchorElement;
   titleLink.href = `#/properties/${encodeURIComponent(property.property_id)}`;

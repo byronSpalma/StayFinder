@@ -44,6 +44,7 @@ export interface Property {
   price_per_night: number;
   max_guests: number;
   owner_id: string | null;
+  image_url: string | null;
 }
 
 // Optional filters and sorting for GET /properties (all sent as query params).
@@ -62,6 +63,7 @@ export interface NewProperty {
   location: string;
   price_per_night: number;
   max_guests: number;
+  image_url?: string | null;
 }
 
 // What DELETE /properties/:id returns.

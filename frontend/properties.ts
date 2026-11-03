@@ -123,6 +123,19 @@ function buildPropertyCard(property: Property): HTMLElement {
   const link = el("a", "property-card") as HTMLAnchorElement;
   link.href = `#/properties/${encodeURIComponent(property.property_id)}`;
 
+  // Background image (if any), with a dark gradient over it for readability.
+  if (property.image_url) {
+    const img = el("img", "property-card-image") as HTMLImageElement;
+    img.src = property.image_url;
+    img.alt = "";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => {
+      img.remove();
+    });
+    link.append(img);
+  }
+
   // Card content: location (small uppercase), title (display), price/guests (small)
   const content = el("div", "property-card-content");
   content.append(
@@ -153,6 +166,20 @@ async function loadDetail(container: HTMLElement, id: string): Promise<void> {
 
     const backLink = el("a", "back-link", "← Back to all properties") as HTMLAnchorElement;
     backLink.href = "#/properties";
+
+    // Large image at the top (if any), with a fallback block if it fails to load.
+    if (property.image_url) {
+      const imageContainer = el("div", "detail-image-container");
+      const img = el("img", "detail-image") as HTMLImageElement;
+      img.src = property.image_url;
+      img.alt = `Photo of ${property.title}`;
+      img.referrerPolicy = "no-referrer";
+      img.addEventListener("error", () => {
+        imageContainer.remove();
+      });
+      imageContainer.append(img);
+      detailPage.append(imageContainer);
+    }
 
     const header = el("div", "detail-header");
     header.append(

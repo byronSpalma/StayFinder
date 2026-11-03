@@ -52,6 +52,49 @@ export function renderPropertyForm(
   guestsInput.min = "1";
   guestsInput.step = "1";
 
+  // Image URL: optional, https only, with a small preview when valid.
+  const imageField = el("div", "form-field");
+  const imageLabel = el("label", undefined, "Image URL");
+  const imageInput = Object.assign(el("input"), {
+    type: "url",
+    value: initial?.image_url ?? "",
+    placeholder: "https://...",
+  });
+  imageLabel.append(imageInput);
+  imageField.append(imageLabel);
+  const imageHelp = el("p", "form-help", "Optional. Paste a link to a photo (https only).");
+  imageField.append(imageHelp);
+  const imagePreview = el("div", "image-preview");
+  imageField.append(imagePreview);
+  form.append(imageField);
+
+  // Show a preview when the URL looks valid (https).
+  const updatePreview = () => {
+    imagePreview.textContent = "";
+    const value = imageInput.value.trim();
+    if (value === "") {
+      return;
+    }
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:") {
+        return;
+      }
+      const img = el("img", "image-preview-img") as HTMLImageElement;
+      img.src = value;
+      img.alt = "Preview";
+      img.referrerPolicy = "no-referrer";
+      img.addEventListener("error", () => {
+        img.remove();
+      });
+      imagePreview.append(img);
+    } catch {
+      // Invalid URL, no preview.
+    }
+  };
+  imageInput.addEventListener("input", updatePreview);
+  updatePreview();
+
   const submit = Object.assign(
     el("button", "btn btn-primary", isEdit ? "Save changes" : "Create property"),
     { type: "submit" }
@@ -102,6 +145,7 @@ export function renderPropertyForm(
       location: locationInput.value.trim(),
       price_per_night: price,
       max_guests: guests,
+      image_url: imageInput.value.trim() === "" ? null : imageInput.value.trim(),
     };
 
     submit.disabled = true;

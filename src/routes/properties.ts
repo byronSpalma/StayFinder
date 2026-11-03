@@ -15,6 +15,32 @@ const newPropertyBodySchema = z.object({
   location: z.string().min(1, "location is required"),
   price_per_night: z.number().positive("price_per_night must be greater than 0"),
   max_guests: z.number().int().positive("max_guests must be greater than 0"),
+  image_url: z
+    .string()
+    .max(2048, "Image URL must be at most 2048 characters")
+    .nullable()
+    .optional()
+    .transform((value) => {
+      // Empty string or undefined becomes null (clears the image).
+      if (value === undefined || value === null || value.trim() === "") {
+        return null;
+      }
+      return value.trim();
+    })
+    .refine(
+      (value) => {
+        if (value === null) {
+          return true;
+        }
+        try {
+          const url = new URL(value);
+          return url.protocol === "https:";
+        } catch {
+          return false;
+        }
+      },
+      { message: "Image URL must be a valid https link" }
+    ),
 });
 
 // Returns 400 with { errors: [...] } when the request body fails validation.
@@ -141,6 +167,8 @@ properties.post("/", requireAuth, propertyValidator(newPropertyBodySchema), asyn
     property_id: `property_${randomUUID().slice(0, 8)}`,
     // The owner always comes from the verified token, never from the request body.
     owner_id: c.get("user").id,
+    // image_url is null when not provided (the transform in the schema handles this).
+    image_url: body.image_url ?? null,
   };
 
   const { data, error } = await c.get("db")
