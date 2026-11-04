@@ -1,0 +1,498 @@
+# StayFinder API Tests
+# VS Code REST Client format
+# 
+# INSTRUCTIONS:
+# 1. Install the "REST Client" extension in VS Code.
+# 2. Replace the placeholder values below with your actual tokens and IDs.
+# 3. Run tests by clicking "Send Request" above each block.
+# 4. Never commit real tokens or passwords to version control.
+#
+# VARIABLES (replace with your own values):
+@baseUrl = http://localhost:3000
+@tokenOutlook = OUTLOOK_ACCESS_TOKEN
+@tokenYahoo = YAHOO_ACCESS_TOKEN
+@propertyIdOutlook = property_793ed564
+@bookingIdYahoo = booking_2479
+@testPropertyId = property_280651ea
+@testBookingId = booking_7757
+
+# ============================================================================
+# G1: Register, login, logout
+# ============================================================================
+
+### Register a new user (should return 201 with email_confirmation_required)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "TestPassword123!"
+}
+
+### Register with invalid email (should return 400)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "TestPassword123!"
+}
+
+### Register with short password (should return 400)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "short"
+}
+
+### Login with valid credentials (should return 200 with tokens)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "YourPassword123!"
+}
+
+### Login with invalid credentials (should return 401)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "WrongPassword"
+}
+
+### Login with unconfirmed email (should return 403)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "unconfirmed@example.com",
+  "password": "TestPassword123!"
+}
+
+### Get current user (should return 200 with user info)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{tokenOutlook}}
+
+### Get current user without token (should return 401)
+GET {{baseUrl}}/auth/me
+
+### Get current user with invalid token (should return 401)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer invalid-token
+
+### Refresh session (should return 200 with new tokens)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "YOUR_REFRESH_TOKEN"
+}
+
+### Refresh with invalid token (should return 401)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "invalid-refresh-token"
+}
+
+### Logout (should return 200)
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{tokenOutlook}}
+
+{
+  "refresh_token": "YOUR_REFRESH_TOKEN"
+}
+
+# ============================================================================
+# G2: Session persists after reload
+# ============================================================================
+
+### Get current user after "reload" (should return 200)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{tokenOutlook}}
+
+# ============================================================================
+# G3: Navigation shows different content for logged in/out
+# ============================================================================
+
+# This is a frontend feature, not testable via API.
+
+# ============================================================================
+# G4: All can see property list and detail page
+# ============================================================================
+
+### Get all properties (should return 200)
+GET {{baseUrl}}/properties
+
+### Get a single property (should return 200)
+GET {{baseUrl}}/properties/{{propertyIdOutlook}}
+
+### Get a non-existent property (should return 404)
+GET {{baseUrl}}/properties/nonexistent
+
+# ============================================================================
+# G5: Filtering on location, max price, guests
+# ============================================================================
+
+### Filter by location (should return 200)
+GET {{baseUrl}}/properties?location=stockholm
+
+### Filter by max price (should return 200)
+GET {{baseUrl}}/properties?max_price=900
+
+### Filter by guests (should return 200)
+GET {{baseUrl}}/properties?guests=4
+
+### Filter with invalid max_price (should return 400)
+GET {{baseUrl}}/properties?max_price=abc
+
+### Filter with invalid guests (should return 400)
+GET {{baseUrl}}/properties?guests=0
+
+### Filter with invalid sort (should return 400)
+GET {{baseUrl}}/properties?sort=cheapest
+
+# ============================================================================
+# G6: Only logged-in users can create, edit, delete properties
+# ============================================================================
+
+### Create property without token (should return 401)
+POST {{baseUrl}}/properties
+Content-Type: application/json
+
+{
+  "title": "Test Property",
+  "description": "A test property",
+  "location": "Test City",
+  "price_per_night": 500,
+  "max_guests": 2
+}
+
+### Create property with token (should return 201)
+POST {{baseUrl}}/properties
+Content-Type: application/json
+Authorization: Bearer {{tokenOutlook}}
+
+{
+  "title": "Test Property",
+  "description": "A test property",
+  "location": "Test City",
+  "price_per_night": 500,
+  "max_guests": 2
+}
+
+### Create property with invalid data (should return 400)
+POST {{baseUrl}}/properties
+Content-Type: application/json
+Authorization: Bearer {{tokenOutlook}}
+
+{
+  "title": "",
+  "description": "A test property",
+  "location": "Test City",
+  "price_per_night": -100,
+  "max_guests": 0
+}
+
+### Update property without token (should return 401)
+PUT {{baseUrl}}/properties/{{propertyIdOutlook}}
+Content-Type: application/json
+
+{
+  "title": "Updated Property",
+  "description": "Updated description",
+  "location": "Updated City",
+  "price_per_night": 600,
+  "max_guests": 3
+}
+
+### Update own property (should return 200)
+PUT {{baseUrl}}/properties/{{testPropertyId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenOutlook}}
+
+{
+  "title": "Updated Test Property",
+  "description": "Updated description",
+  "location": "Updated City",
+  "price_per_night": 600,
+  "max_guests": 3
+}
+
+### Update someone else's property (should return 404)
+PUT {{baseUrl}}/properties/{{propertyIdOutlook}}
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "title": "Hacked Property",
+  "description": "This should not work",
+  "location": "Nowhere",
+  "price_per_night": 1,
+  "max_guests": 1
+}
+
+### Delete property without token (should return 401)
+DELETE {{baseUrl}}/properties/{{propertyIdOutlook}}
+
+### Delete own property (should return 200)
+DELETE {{baseUrl}}/properties/{{testPropertyId}}
+Authorization: Bearer {{tokenOutlook}}
+
+### Delete someone else's property (should return 404)
+DELETE {{baseUrl}}/properties/{{propertyIdOutlook}}
+Authorization: Bearer {{tokenYahoo}}
+
+# ============================================================================
+# G7: Logged-in user can create property via frontend form
+# ============================================================================
+
+# This is a frontend feature, not testable via API.
+
+# ============================================================================
+# G8: Sorting by price ascending and descending
+# ============================================================================
+
+### Sort by price ascending (should return 200)
+GET {{baseUrl}}/properties?sort=price_asc
+
+### Sort by price descending (should return 200)
+GET {{baseUrl}}/properties?sort=price_desc
+
+# ============================================================================
+# G9: Logged-in user can book from detail page
+# ============================================================================
+
+### Create booking without token (should return 401)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 2
+}
+
+### Create booking with token (should return 201)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 2
+}
+
+# ============================================================================
+# G10: Invalid bookings are rejected
+# ============================================================================
+
+### Create booking with invalid email (should return 400)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "not-an-email",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 2
+}
+
+### Create booking with zero guests (should return 400)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 0
+}
+
+### Create booking with check_out before check_in (should return 400)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2026-12-05",
+  "check_out": "2026-12-03",
+  "guests": 2
+}
+
+### Create booking with check_in in the past (should return 400)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2020-01-01",
+  "check_out": "2020-01-03",
+  "guests": 2
+}
+
+### Create booking with too many guests (should return 400)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 99
+}
+
+### Create booking with non-existent property (should return 404)
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "nonexistent",
+  "guest_name": "Test Guest",
+  "guest_email": "guest@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 2
+}
+
+# ============================================================================
+# G11: Booking form shows nights and total price
+# ============================================================================
+
+# This is a frontend feature, not testable via API.
+
+# ============================================================================
+# G12: Logged-in user can see, edit, delete bookings
+# ============================================================================
+
+### Get all bookings without token (should return 401)
+GET {{baseUrl}}/bookings
+
+### Get all bookings with token (should return 200)
+GET {{baseUrl}}/bookings
+Authorization: Bearer {{tokenYahoo}}
+
+### Get a single booking (should return 200)
+GET {{baseUrl}}/bookings/{{bookingIdYahoo}}
+Authorization: Bearer {{tokenYahoo}}
+
+### Get a non-existent booking (should return 404)
+GET {{baseUrl}}/bookings/nonexistent
+Authorization: Bearer {{tokenYahoo}}
+
+### Update booking without token (should return 401)
+PUT {{baseUrl}}/bookings/{{bookingIdYahoo}}
+Content-Type: application/json
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Updated Guest",
+  "guest_email": "updated@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 2
+}
+
+### Update own booking (should return 200)
+PUT {{baseUrl}}/bookings/{{testBookingId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Updated Guest",
+  "guest_email": "updated@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 1
+}
+
+### Update someone else's booking (should return 404)
+PUT {{baseUrl}}/bookings/{{bookingIdYahoo}}
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "property_id": "{{propertyIdOutlook}}",
+  "guest_name": "Hacked Guest",
+  "guest_email": "hacked@example.com",
+  "check_in": "2026-12-01",
+  "check_out": "2026-12-03",
+  "guests": 1
+}
+
+### Cancel booking (should return 200)
+PATCH {{baseUrl}}/bookings/{{testBookingId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenYahoo}}
+
+{
+  "status": "cancelled"
+}
+
+### Delete booking without token (should return 401)
+DELETE {{baseUrl}}/bookings/{{bookingIdYahoo}}
+
+### Delete own booking (should return 200)
+DELETE {{baseUrl}}/bookings/{{testBookingId}}
+Authorization: Bearer {{tokenYahoo}}
+
+### Delete someone else's booking (should return 404)
+DELETE {{baseUrl}}/bookings/{{bookingIdYahoo}}
+Authorization: Bearer {{tokenOutlook}}
+
+# ============================================================================
+# G13: Loading, error, and not-found views
+# ============================================================================
+
+# These are frontend features, not testable via API.
+
+# ============================================================================
+# G14: Correct HTTP status codes
+# ============================================================================
+
+# Covered by the tests above.
+
+# ============================================================================
+# G15: Database protects tables with RLS
+# ============================================================================
+
+# This cannot be tested via the API alone. You must verify in Supabase Dashboard
+# that RLS is enabled and policies exist for properties and bookings.
+
+# ============================================================================
+# G16: All data is typed in backend and frontend
+# ============================================================================
+
+# This is a code quality feature, not testable via API.
+
