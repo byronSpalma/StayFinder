@@ -9,12 +9,12 @@
 #
 # VARIABLES (replace with your own values):
 @baseUrl = http://localhost:3000
-@tokenUser1 = YOUR_ACCESS_TOKEN_USER1
-@tokenUser2 = YOUR_ACCESS_TOKEN_USER2
-@propertyIdUser1 = property_1001
-@propertyIdUser2 = property_1002
-@bookingIdUser1 = booking_2
-@bookingIdUser2 = booking_3
+@tokenOutlook = YOUR_ACCESS_TOKEN_OUTLOOK
+@tokenYahoo = YOUR_ACCESS_TOKEN_YAHOO
+@propertyIdOutlook = property_793ed564
+@bookingIdYahoo = booking_2479
+@testPropertyId = property_280651ea
+@testBookingId = booking_1403
 
 # ============================================================================
 # G1: Register, login, logout
@@ -76,7 +76,7 @@ Content-Type: application/json
 
 ### Get current user (should return 200 with user info)
 GET {{baseUrl}}/auth/me
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 ### Get current user without token (should return 401)
 GET {{baseUrl}}/auth/me
@@ -104,7 +104,7 @@ Content-Type: application/json
 ### Logout (should return 200)
 POST {{baseUrl}}/auth/logout
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 {
   "refresh_token": "YOUR_REFRESH_TOKEN"
@@ -116,7 +116,7 @@ Authorization: Bearer {{tokenUser1}}
 
 ### Get current user after "reload" (should return 200)
 GET {{baseUrl}}/auth/me
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 # ============================================================================
 # G3: Navigation shows different content for logged in/out
@@ -132,7 +132,7 @@ Authorization: Bearer {{tokenUser1}}
 GET {{baseUrl}}/properties
 
 ### Get a single property (should return 200)
-GET {{baseUrl}}/properties/{{propertyIdUser1}}
+GET {{baseUrl}}/properties/{{propertyIdOutlook}}
 
 ### Get a non-existent property (should return 404)
 GET {{baseUrl}}/properties/nonexistent
@@ -178,7 +178,7 @@ Content-Type: application/json
 ### Create property with token (should return 201)
 POST {{baseUrl}}/properties
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 {
   "title": "Test Property",
@@ -191,7 +191,7 @@ Authorization: Bearer {{tokenUser1}}
 ### Create property with invalid data (should return 400)
 POST {{baseUrl}}/properties
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 {
   "title": "",
@@ -202,7 +202,7 @@ Authorization: Bearer {{tokenUser1}}
 }
 
 ### Update property without token (should return 401)
-PUT {{baseUrl}}/properties/{{propertyIdUser1}}
+PUT {{baseUrl}}/properties/{{propertyIdOutlook}}
 Content-Type: application/json
 
 {
@@ -214,12 +214,12 @@ Content-Type: application/json
 }
 
 ### Update own property (should return 200)
-PUT {{baseUrl}}/properties/{{propertyIdUser1}}
+PUT {{baseUrl}}/properties/{{testPropertyId}}
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 {
-  "title": "Updated Property",
+  "title": "Updated Test Property",
   "description": "Updated description",
   "location": "Updated City",
   "price_per_night": 600,
@@ -227,9 +227,9 @@ Authorization: Bearer {{tokenUser1}}
 }
 
 ### Update someone else's property (should return 404)
-PUT {{baseUrl}}/properties/{{propertyIdUser2}}
+PUT {{baseUrl}}/properties/{{propertyIdOutlook}}
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
   "title": "Hacked Property",
@@ -240,15 +240,15 @@ Authorization: Bearer {{tokenUser1}}
 }
 
 ### Delete property without token (should return 401)
-DELETE {{baseUrl}}/properties/{{propertyIdUser1}}
+DELETE {{baseUrl}}/properties/{{propertyIdOutlook}}
 
 ### Delete own property (should return 200)
-DELETE {{baseUrl}}/properties/{{propertyIdUser1}}
-Authorization: Bearer {{tokenUser1}}
+DELETE {{baseUrl}}/properties/{{testPropertyId}}
+Authorization: Bearer {{tokenOutlook}}
 
 ### Delete someone else's property (should return 404)
-DELETE {{baseUrl}}/properties/{{propertyIdUser2}}
-Authorization: Bearer {{tokenUser1}}
+DELETE {{baseUrl}}/properties/{{propertyIdOutlook}}
+Authorization: Bearer {{tokenYahoo}}
 
 # ============================================================================
 # G7: Logged-in user can create property via frontend form
@@ -275,7 +275,7 @@ POST {{baseUrl}}/bookings
 Content-Type: application/json
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "guest@example.com",
   "check_in": "2026-12-01",
@@ -286,10 +286,10 @@ Content-Type: application/json
 ### Create booking with token (should return 201)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "guest@example.com",
   "check_in": "2026-12-01",
@@ -304,10 +304,10 @@ Authorization: Bearer {{tokenUser1}}
 ### Create booking with invalid email (should return 400)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "not-an-email",
   "check_in": "2026-12-01",
@@ -318,10 +318,10 @@ Authorization: Bearer {{tokenUser1}}
 ### Create booking with zero guests (should return 400)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "guest@example.com",
   "check_in": "2026-12-01",
@@ -332,10 +332,10 @@ Authorization: Bearer {{tokenUser1}}
 ### Create booking with check_out before check_in (should return 400)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "guest@example.com",
   "check_in": "2026-12-05",
@@ -346,10 +346,10 @@ Authorization: Bearer {{tokenUser1}}
 ### Create booking with check_in in the past (should return 400)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "guest@example.com",
   "check_in": "2020-01-01",
@@ -360,10 +360,10 @@ Authorization: Bearer {{tokenUser1}}
 ### Create booking with too many guests (should return 400)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Test Guest",
   "guest_email": "guest@example.com",
   "check_in": "2026-12-01",
@@ -374,7 +374,7 @@ Authorization: Bearer {{tokenUser1}}
 ### Create booking with non-existent property (should return 404)
 POST {{baseUrl}}/bookings
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
   "property_id": "nonexistent",
@@ -400,22 +400,22 @@ GET {{baseUrl}}/bookings
 
 ### Get all bookings with token (should return 200)
 GET {{baseUrl}}/bookings
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 ### Get a single booking (should return 200)
-GET {{baseUrl}}/bookings/{{bookingIdUser1}}
-Authorization: Bearer {{tokenUser1}}
+GET {{baseUrl}}/bookings/{{bookingIdYahoo}}
+Authorization: Bearer {{tokenYahoo}}
 
 ### Get a non-existent booking (should return 404)
 GET {{baseUrl}}/bookings/nonexistent
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 ### Update booking without token (should return 401)
-PUT {{baseUrl}}/bookings/{{bookingIdUser1}}
+PUT {{baseUrl}}/bookings/{{bookingIdYahoo}}
 Content-Type: application/json
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Updated Guest",
   "guest_email": "updated@example.com",
   "check_in": "2026-12-01",
@@ -424,12 +424,12 @@ Content-Type: application/json
 }
 
 ### Update own booking (should return 200)
-PUT {{baseUrl}}/bookings/{{bookingIdUser1}}
+PUT {{baseUrl}}/bookings/{{testBookingId}}
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
-  "property_id": "{{propertyIdUser1}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Updated Guest",
   "guest_email": "updated@example.com",
   "check_in": "2026-12-01",
@@ -438,12 +438,12 @@ Authorization: Bearer {{tokenUser1}}
 }
 
 ### Update someone else's booking (should return 404)
-PUT {{baseUrl}}/bookings/{{bookingIdUser2}}
+PUT {{baseUrl}}/bookings/{{bookingIdYahoo}}
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenOutlook}}
 
 {
-  "property_id": "{{propertyIdUser2}}",
+  "property_id": "{{propertyIdOutlook}}",
   "guest_name": "Hacked Guest",
   "guest_email": "hacked@example.com",
   "check_in": "2026-12-01",
@@ -452,24 +452,24 @@ Authorization: Bearer {{tokenUser1}}
 }
 
 ### Cancel booking (should return 200)
-PATCH {{baseUrl}}/bookings/{{bookingIdUser1}}
+PATCH {{baseUrl}}/bookings/{{testBookingId}}
 Content-Type: application/json
-Authorization: Bearer {{tokenUser1}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
   "status": "cancelled"
 }
 
 ### Delete booking without token (should return 401)
-DELETE {{baseUrl}}/bookings/{{bookingIdUser1}}
+DELETE {{baseUrl}}/bookings/{{bookingIdYahoo}}
 
 ### Delete own booking (should return 200)
-DELETE {{baseUrl}}/bookings/{{bookingIdUser1}}
-Authorization: Bearer {{tokenUser1}}
+DELETE {{baseUrl}}/bookings/{{testBookingId}}
+Authorization: Bearer {{tokenYahoo}}
 
 ### Delete someone else's booking (should return 404)
-DELETE {{baseUrl}}/bookings/{{bookingIdUser2}}
-Authorization: Bearer {{tokenUser1}}
+DELETE {{baseUrl}}/bookings/{{bookingIdYahoo}}
+Authorization: Bearer {{tokenOutlook}}
 
 # ============================================================================
 # G13: Loading, error, and not-found views
@@ -495,3 +495,4 @@ Authorization: Bearer {{tokenUser1}}
 # ============================================================================
 
 # This is a code quality feature, not testable via API.
+
