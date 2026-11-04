@@ -280,6 +280,16 @@ public/
   js/                     # compiled frontend
 ```
 
+## Testing the API
+
+The file [`stayfinder-tests.http`](./stayfinder-tests.http) contains test requests for the
+[REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension
+in VS Code. It reads `EMAIL_OUTLOOK`, `PASSWORD_OUTLOOK`, `EMAIL_YAHOO` and `PASSWORD_YAHOO`
+from `.env` (which is never committed). Run the two login requests at the top first, then the
+rest from top to bottom. Each request states the expected HTTP status code in its heading.
+The file creates and deletes its own test property and test booking, so no existing data is
+changed.
+
 ## Known limitations
 
 - **Double bookings are not prevented.** A user only sees their own bookings, so the API cannot

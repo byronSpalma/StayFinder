@@ -9,12 +9,12 @@
 #
 # VARIABLES (replace with your own values):
 @baseUrl = http://localhost:3000
-@tokenOutlook = YOUR_ACCESS_TOKEN_OUTLOOK
-@tokenYahoo = YOUR_ACCESS_TOKEN_YAHOO
+@tokenOutlook = OUTLOOK_ACCESS_TOKEN
+@tokenYahoo = YAHOO_ACCESS_TOKEN
 @propertyIdOutlook = property_793ed564
 @bookingIdYahoo = booking_2479
 @testPropertyId = property_280651ea
-@testBookingId = booking_1403
+@testBookingId = booking_7757
 
 # ============================================================================
 # G1: Register, login, logout
@@ -434,13 +434,13 @@ Authorization: Bearer {{tokenYahoo}}
   "guest_email": "updated@example.com",
   "check_in": "2026-12-01",
   "check_out": "2026-12-03",
-  "guests": 2
+  "guests": 1
 }
 
 ### Update someone else's booking (should return 404)
 PUT {{baseUrl}}/bookings/{{bookingIdYahoo}}
 Content-Type: application/json
-Authorization: Bearer {{tokenOutlook}}
+Authorization: Bearer {{tokenYahoo}}
 
 {
   "property_id": "{{propertyIdOutlook}}",
@@ -448,7 +448,7 @@ Authorization: Bearer {{tokenOutlook}}
   "guest_email": "hacked@example.com",
   "check_in": "2026-12-01",
   "check_out": "2026-12-03",
-  "guests": 2
+  "guests": 1
 }
 
 ### Cancel booking (should return 200)
